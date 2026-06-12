@@ -709,7 +709,7 @@ export default function RomanticDateApp() {
                       
                       <div className="w-36 h-36 rounded-full border-4 border-white shadow-lg bg-white flex items-center justify-center overflow-hidden animate-pulse-slow relative z-10">
                         <img 
-                          src="/romantic_bouquet.png" 
+                          src="/romantic_bouquet.jpg" 
                           alt="Romantic Bouquet" 
                           className="w-full h-full object-cover select-none pointer-events-none"
                         />
