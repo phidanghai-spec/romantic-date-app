@@ -707,8 +707,12 @@ export default function RomanticDateApp() {
                       {/* Gradient glowing rings background */}
                       <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-pink-400 to-purple-500 opacity-20 blur-xl animate-pulse-slow"></div>
                       
-                      <div className="w-36 h-36 rounded-full border-4 border-white shadow-lg bg-gradient-to-tr from-pink-400 via-rose-400 to-purple-500 flex items-center justify-center animate-pulse-slow relative z-10">
-                        <span className="text-7.5xl filter drop-shadow-md select-none">💑</span>
+                      <div className="w-36 h-36 rounded-full border-4 border-white shadow-lg bg-white flex items-center justify-center overflow-hidden animate-pulse-slow relative z-10">
+                        <img 
+                          src="/romantic_bouquet.png" 
+                          alt="Romantic Bouquet" 
+                          className="w-full h-full object-cover select-none pointer-events-none"
+                        />
                       </div>
 
                       {/* Staggered bouncing details around circle */}
