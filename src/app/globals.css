@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-quicksand), var(--font-inter), sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+
+  --color-primary-pink: #ec4899;
+  --color-dark-pink: #f43f5e;
+  --color-light-pink: #fce7f3;
+  --color-purple-accent: #c084fc;
+  --color-purple-light: #f3e8ff;
+  --color-rose-light: #ffe4e6;
+  --color-gray-text: #374151;
+  --color-light-gray: #d1d5db;
+  --color-dark-gray: #1f2937;
+
+  /* Custom animations */
+  --animate-fade-in: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-pulse-slow: pulseSlow 2.5s infinite ease-in-out;
+  --animate-bounce-slow: bounceSlow 1.8s infinite ease-in-out;
+  --animate-bounce-delayed-1: bounceSlow 1.8s infinite ease-in-out 0.2s;
+  --animate-bounce-delayed-2: bounceSlow 1.8s infinite ease-in-out 0.4s;
+  --animate-float-slow: floatSlow 8s ease-in-out infinite;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes pulseSlow {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 4px 20px 0 rgba(236, 72, 153, 0.2);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px 4px rgba(236, 72, 153, 0.4);
+    }
+  }
+
+  @keyframes bounceSlow {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes floatSlow {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-12px) rotate(3deg);
+    }
+  }
+}
+
+:root {
+  --background: #fff5f7;
+  --foreground: #374151;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Custom scrollbar for mobile container */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(236, 72, 153, 0.2);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(236, 72, 153, 0.4);
+}
+
+/* Glassmorphism card utility */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Custom animations helper classes */
+.delay-100 {
+  animation-delay: 100ms;
+}
+.delay-200 {
+  animation-delay: 200ms;
+}
+.delay-300 {
+  animation-delay: 300ms;
+}
+.delay-400 {
+  animation-delay: 400ms;
+}
+.delay-500 {
+  animation-delay: 500ms;
+}
