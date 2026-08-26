@@ -1,12 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import AmbientBokehBackground from '@/components/ui/AmbientBokehBackground';
 import FloatingDynamicIsland from '@/components/navigation/FloatingDynamicIsland';
-import { Heart, Sparkles, ArrowRight, Dices, CalendarHeart } from 'lucide-react';
+import { CoupleSettingsModal } from '@/components/profile/CoupleSettingsModal';
+import { useCoupleStore } from '@/lib/coupleStore';
+import { Heart, Sparkles, Dices, CalendarHeart, Settings2 } from 'lucide-react';
 
 export default function HomePage() {
+  const { profile, getDaysTogether } = useCoupleStore();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const daysTogether = getDaysTogether();
+
   return (
     <div className="relative w-full min-h-screen bg-[#FAF6EE] text-[#2D1E2F] overflow-x-hidden selection:bg-rose-200 selection:text-rose-900 flex flex-col justify-between">
       {/* ══════════════════════════════════════════════
@@ -35,7 +42,7 @@ export default function HomePage() {
       </div>
 
       {/* ══════════════════════════════════════════════
-          TẦNG 3: MINIMAL HEADER (LOGO & QUICK STATUS)
+          TẦNG 3: MINIMAL HEADER (LOGO & COUPLE STATUS)
          ══════════════════════════════════════════════ */}
       <header className="relative z-30 w-full px-6 sm:px-12 py-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 group cursor-pointer">
@@ -47,22 +54,24 @@ export default function HomePage() {
           </span>
         </Link>
 
-        {/* Mini Pill */}
-        <div className="hidden sm:inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/30 text-white/90 text-xs font-medium drop-shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 text-rose-300" />
-          <span>Private Couple Space</span>
-        </div>
+        {/* Couple Profile Pill Button */}
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/40 text-white text-xs font-semibold drop-shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
+          title="Mở hồ sơ & ngày kỷ niệm cặp đôi"
+        >
+          <Heart className="w-3.5 h-3.5 text-rose-300 fill-rose-300 animate-pulse" />
+          <span>
+            {profile.yourName} &amp; {profile.partnerName} • {daysTogether} Ngày 💕
+          </span>
+          <Settings2 className="w-3.5 h-3.5 text-white/70 ml-0.5" />
+        </button>
       </header>
 
       {/* ══════════════════════════════════════════════
           TẦNG 4: HERO CINEMATIC CONTENT (GIỮA MÀN HÌNH)
          ══════════════════════════════════════════════ */}
       <main className="relative z-20 flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto -mt-6 sm:-mt-10 pb-28">
-        {/* Luminous Tag */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-white/60 text-[#BE123C] text-xs sm:text-sm font-bold mb-6 shadow-xl shadow-black/10 animate-pulse">
-          <span>🌸</span> Không gian hẹn hò riêng tư của hai đứa
-        </div>
-
         {/* Cinematic Headline */}
         <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-bold text-white drop-shadow-2xl tracking-tight leading-[1.06]">
           Love at first taste<span className="text-rose-300 italic">.</span>
@@ -80,7 +89,7 @@ export default function HomePage() {
             className="px-7 py-3 rounded-full bg-white/95 hover:bg-white text-[#4A1D2F] font-bold text-xs sm:text-sm shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-white/50 cursor-pointer"
           >
             <Dices className="w-4 h-4 text-rose-600" />
-            <span>Quay Vòng Ăn Gì 🎲</span>
+            <span>Quay Vòng Ẩm Thực 🎲</span>
           </Link>
 
           <Link
@@ -94,9 +103,17 @@ export default function HomePage() {
       </main>
 
       {/* ══════════════════════════════════════════════
-          TẦNG 5: FLOATING DYNAMIC ISLAND (THANH TƯƠNG TÁC NỔI CẠNH ĐÁY)
+          TẦNG 5: FLOATING DYNAMIC ISLAND
          ══════════════════════════════════════════════ */}
       <FloatingDynamicIsland />
+
+      {/* ══════════════════════════════════════════════
+          COUPLE SETTINGS MODAL
+         ══════════════════════════════════════════════ */}
+      <CoupleSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 }

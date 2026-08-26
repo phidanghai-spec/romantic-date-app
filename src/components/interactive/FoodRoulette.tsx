@@ -3,101 +3,110 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { 
-  Sparkles, 
-  RotateCw, 
-  CalendarHeart, 
-  ChefHat, 
-  Heart, 
-  Utensils, 
-  Flame, 
+import {
+  Sparkles,
+  RotateCw,
+  CalendarHeart,
+  ChefHat,
+  Heart,
+  Utensils,
+  Flame,
   Check,
-  Wine,
-  Cake,
-  Coffee
+  Plus,
+  Settings2,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useCoupleStore } from '@/lib/coupleStore';
+import { CountryCuisine, FoodItem } from '@/types/couple';
+import { CoupleSettingsModal } from '@/components/profile/CoupleSettingsModal';
 
-export interface RouletteFoodItem {
-  id: string;
-  name: string;
-  emoji: string;
-  tag: string;
-  desc: string;
-}
-
-export interface CategoryData {
-  id: 'nang' | 'chang' | 'dessert' | 'romantic';
+export interface CountryCategory {
+  id: CountryCuisine;
   label: string;
-  icon: string;
-  items: RouletteFoodItem[];
+  flag: string;
+  items: FoodItem[];
 }
 
-export const CATEGORIES_CONFIG: CategoryData[] = [
+export const COUNTRY_FOOD_DATABASE: CountryCategory[] = [
   {
-    id: 'nang',
-    label: 'Gu Nàng 💖',
-    icon: '💖',
+    id: 'vietnam',
+    label: 'Việt Nam',
+    flag: '🇻🇳',
     items: [
-      { id: 'n1', name: 'Lẩu Haidilao', emoji: '🍲', tag: 'Nàng Mê 💖', desc: 'Nhúng thịt bò, múa mì kungfu & nước lẩu cà chua đậm đà' },
-      { id: 'n2', name: 'Trà Sữa Trân Châu', emoji: '🧋', tag: 'Hảo Ngọt 🧋', desc: 'Trà sữa đậm vị kèm trân châu đường đen dẻo thơm' },
-      { id: 'n3', name: 'Sushi & Sashimi', emoji: '🍣', tag: 'Thanh Nhẹ 🍵', desc: 'Cá hồi Na Uy tươi béo mềm tan và cơm cuộn rong biển' },
-      { id: 'n4', name: 'Bánh Mousse Dâu', emoji: '🍰', tag: 'Ngọt Ngào 🍓', desc: 'Bánh kem dâu tây chua ngọt mát lạnh và trà hoa quả' },
-      { id: 'n5', name: 'Mì Ý Sốt Nấm', emoji: '🍝', tag: 'Béo Ngậy 🧀', desc: 'Sợi mì Ý dai mềm quyện sốt kem nấm truffle thơm lừng' },
-      { id: 'n6', name: 'Bingsu Xoài Tuyết', emoji: '🍧', tag: 'Mát Lạnh 🥭', desc: 'Tuyết sữa bào mịn phủ sốt xoài tươi và kem vani' },
-      { id: 'n7', name: 'Tokbokki Phô Mai', emoji: '🧀', tag: 'Cay Cay 🌶️', desc: 'Bánh gạo dẻo quánh sốt tương ớt Hàn Quốc kéo sợi phô mai' },
-      { id: 'n8', name: 'Gà Rán Giòn Rụm', emoji: '🍗', tag: 'Giòn Tan 🍗', desc: 'Gà rán sốt mật ong tỏi giòn tan nhâm nhi cùng nước ngọt' },
+      { id: 'vn1', name: 'Bún Đậu Mắm Tôm', emoji: '🥢', country: 'vietnam', tag: 'Đậm Đà Dân Dã 🍃', desc: 'Chả cốm giòn rụm, thịt bắp giò luộc, đậu rán vàng giòn và mắm tôm chuẩn vị.' },
+      { id: 'vn2', name: 'Phở Bò Tái Lăn', emoji: '🍜', country: 'vietnam', tag: 'Truyền Thống 🍲', desc: 'Nước dùng hầm xương ngọt thanh 24h, thịt bò xào lăn thơm phức và quẩy giòn.' },
+      { id: 'vn3', name: 'Bún Bò Huế', emoji: '🍲', country: 'vietnam', tag: 'Cay Nồng 🌶️', desc: 'Nước dùng sả ớt đậm đà, chả cua thơm béo, giò heo mềm và rau sống tươi rói.' },
+      { id: 'vn4', name: 'Cơm Tấm Sườn Bì', emoji: '🍛', country: 'vietnam', tag: 'No Bụng 🍖', desc: 'Sườn cốt lết nướng mỡ hành thơm nức mũi, chả trứng béo ngậy và nước mắm kẹo.' },
+      { id: 'vn5', name: 'Bánh Mì Chảo', emoji: '🥖', country: 'vietnam', tag: 'Năng Lượng 🍳', desc: 'Pate béo ngậy, trứng ốp la xèo xèo, xúc xích và sốt cà chua bánh mì giòn tan.' },
+      { id: 'vn6', name: 'Nem Nướng Nha Trang', emoji: '🍢', country: 'vietnam', tag: 'Tươi Mát 🥗', desc: 'Nem nướng thơm lừng cuốn bánh tráng, ram giòn, xoài xanh và nước chấm tôm thịt.' },
+      { id: 'vn7', name: 'Lẩu Cua Đồng', emoji: '🦀', country: 'vietnam', tag: 'Ấm Cúng 🥘', desc: 'Riêu cua đồng thơm béo, sườn sụn giòn sần sật, bắp bò nhúng rau muống tươi.' },
+      { id: 'vn8', name: 'Ốc Sài Gòn & Đồ Cay', emoji: '🐚', country: 'vietnam', tag: 'Náo Nhiệt 🍻', desc: 'Ốc hương sốt trứng muối kèm bánh mì, càng ghẹ rang muối ớt và trà tắc mát lạnh.' },
     ],
   },
   {
-    id: 'chang',
-    label: 'Gu Chàng 🍖',
-    icon: '🍖',
+    id: 'korea',
+    label: 'Hàn Quốc',
+    flag: '🇰🇷',
     items: [
-      { id: 'c1', name: 'K-BBQ Nướng', emoji: '🥩', tag: 'Chàng Khoái 🍖', desc: 'Dẻ sườn bò nướng than hồng xèo xèo cuốn lá mè' },
-      { id: 'c2', name: 'Bò Né Ốp La', emoji: '🍳', tag: 'Năng Lượng 🥖', desc: 'Bò bít tết chảo gang xèo xèo kèm pate béo ngậy và bánh mì' },
-      { id: 'c3', name: 'Bún Đậu Mắm Tôm', emoji: '🥢', tag: 'Đậm Đà 🍃', desc: 'Chả cốm giòn rụm, thịt bắp giò luộc & mắm tôm thơm ngậy' },
-      { id: 'c4', name: 'Cơm Tấm Sườn Bì', emoji: '🍚', tag: 'No Bụng 🍛', desc: 'Sườn nướng mỡ hành thơm phức, chả trứng & nước mắm kẹo' },
-      { id: 'c5', name: 'Ốc Sài Gòn & Đồ Cay', emoji: '🍢', tag: 'Náo Nhiệt 🥢', desc: 'Ốc hương trứng muối, càng ghẹ rang muối ớt & trà tắc' },
-      { id: 'c6', name: 'Phở Bò Tái Nạm', emoji: '🍜', tag: 'Truyền Thống 🍲', desc: 'Nước dùng hầm xương ngọt thanh, hành hoa & quẩy giòn' },
-      { id: 'c7', name: 'Burger Bò Mỹ', emoji: '🍔', tag: 'Đẫm Sốt 🍟', desc: 'Thịt bò Angus nướng phô mai cheddar kèm khoai tây chiên' },
-      { id: 'c8', name: 'Bia Thủ Công & Mồi', emoji: '🍺', tag: 'Chill Tối 🍻', desc: 'Craft beer mát lạnh cùng snack khô bò & xúc xích nướng' },
+      { id: 'kr1', name: 'K-BBQ Nướng Than', emoji: '🥩', country: 'korea', tag: 'Chàng Khoái 🍖', desc: 'Dẻ sườn bò ướp sốt nướng than hồng xèo xèo, cuộn lá mè tỏi ớt và kimchi giòn.' },
+      { id: 'kr2', name: 'Tokbokki Phô Mai', emoji: '🧀', country: 'korea', tag: 'Cay Kéo Sợi 🌶️', desc: 'Bánh gạo dẻo quánh đẫm sốt tương ớt Hàn Quốc kéo sợi phô mai mozzarella béo ngậy.' },
+      { id: 'kr3', name: 'Gà Rán Sốt Cay', emoji: '🍗', country: 'korea', tag: 'Giòn Rụm 🍗', desc: 'Gà rán sốt mật ong tỏi hoặc sốt cay ngọt giòn tan nhâm nhi cùng bia mát lạnh.' },
+      { id: 'kr4', name: 'Canh Kim Chi Thịt Bò', emoji: '🍲', country: 'korea', tag: 'Nóng Hổi ♨️', desc: 'Canh kimchi chua cay hầm thịt ba chỉ bò mềm và đậu hũ non ấm lòng ngày mưa.' },
+      { id: 'kr5', name: 'Kimbap Chiên Giòn', emoji: '🍙', country: 'korea', tag: 'Thơm Ngon 🍱', desc: 'Cơm cuộn rong biển nhân thanh cua trứng xúc xích lăn bột chiên xù giòn tan.' },
+      { id: 'kr6', name: 'Mì Lạnh Naengmyeon', emoji: '🍜', country: 'korea', tag: 'Mát Lạnh 🧊', desc: 'Sợi mì kiều mạch dai ngon trong nước dùng thịt bò lạnh thanh mát giải nhiệt.' },
+      { id: 'kr7', name: 'Cơm Trộn Bibimbap', emoji: '🍚', country: 'korea', tag: 'Đầy Đủ 🥗', desc: 'Cơm thố đá nóng xèo xèo trộn thịt bò băm, rau củ xào, trứng lòng đào và sốt Gochujang.' },
+      { id: 'kr8', name: 'Bánh Xèo Kim Chi', emoji: '🥞', country: 'korea', tag: 'Giòn Tan 🥢', desc: 'Bánh xèo kimchi hải sản chiên giòn viền chấm nước tương ớt cay nhẹ.' },
+    ],
+  },
+  {
+    id: 'japan',
+    label: 'Nhật Bản',
+    flag: '🇯🇵',
+    items: [
+      { id: 'jp1', name: 'Sushi Cá Hồi & Sashimi', emoji: '🍣', country: 'japan', tag: 'Tươi Sống 🐟', desc: 'Cá hồi Na Uy và cá ngừ tươi béo mềm tan chấm mù tạt wasabi cay nồng.' },
+      { id: 'jp2', name: 'Ramen Tonkotsu', emoji: '🍜', country: 'japan', tag: 'Tinh Túy 🍲', desc: 'Nước dùng hầm xương heo 14 tiếng sánh đậm, thịt chashu mềm rục và trứng dẻo.' },
+      { id: 'jp3', name: 'Cơm Lươn Unagi', emoji: '🍱', country: 'japan', tag: 'Bổ Dưỡng 🍚', desc: 'Lươn nướng sốt ngọt Teriyaki bóng bẩy trên nền cơm trắng dẻo hạt Nhật Bản.' },
+      { id: 'jp4', name: 'Bò Wagyu Nướng', emoji: '🥩', country: 'japan', tag: 'Thượng Hạng ✨', desc: 'Thịt bò Wagyu vân mỡ cẩm thạch mềm tan như bơ nướng đá muối hồng.' },
+      { id: 'jp5', name: 'Tempura Tôm Giòn', emoji: '🍤', country: 'japan', tag: 'Vàng Rụm 🍤', desc: 'Tôm sú tươi tẩm bột tempura chiên phồng giòn xốp chấm nước sốt củ cải mài.' },
+      { id: 'jp6', name: 'Udon Bò Nóng Hổi', emoji: '🍲', country: 'japan', tag: 'Thanh Nhẹ 🍵', desc: 'Sợi mì Udon to tròn trơn mượt trong nước súp dashi thanh ngọt thịt bò.' },
+      { id: 'jp7', name: 'Bánh Bạch Tuộc Takoyaki', emoji: '🐙', country: 'japan', tag: 'Ăn Vặt 🥢', desc: 'Bánh viên nhân bạch tuộc nóng hổi phủ sốt mayonnaise và cá bào nhảy múa.' },
+      { id: 'jp8', name: 'Mì Soba Lạnh', emoji: '🥢', country: 'japan', tag: 'Mát Lành 🍃', desc: 'Mì kiều mạch ướp lạnh chấm sốt tsuyu thanh mát ăn kèm rong biển giòn.' },
+    ],
+  },
+  {
+    id: 'italy',
+    label: 'Âu - Ý & Lãng Mạn',
+    flag: '🇮🇹',
+    items: [
+      { id: 'it1', name: 'Pizza Nướng Củi', emoji: '🍕', country: 'italy', tag: 'Thủ Công 🍕', desc: 'Đế bánh mỏng giòn nướng lò củi phủ phô mai Mozzarella tươi và sốt cà chua Ý.' },
+      { id: 'it2', name: 'Mì Ý Carbonara', emoji: '🍝', country: 'italy', tag: 'Béo Ngậy 🧀', desc: 'Sợi mì spaghetti quyện sốt lòng đỏ trứng gà, phô mai Pecorino và thịt xông khói giòn.' },
+      { id: 'it3', name: 'Steak Bò Sốt Tiêu & Vang', emoji: '🍷', country: 'italy', tag: 'Lãng Mạn 🕯️', desc: 'Thăn bò Black Angus nướng medium rare sốt tiêu đen bên ly rượu vang đỏ nồng nàn.' },
+      { id: 'it4', name: 'Pasta Nấm Truffle', emoji: '🧀', country: 'italy', tag: 'Thơm Lừng ✨', desc: 'Mì dẹt fettuccine sốt kem nấm hương thảo và dầu nấm Truffle đen quý giá.' },
+      { id: 'it5', name: 'Salad Burrata Phô Mai', emoji: '🥗', country: 'italy', tag: 'Thanh Mát 🍅', desc: 'Phô mai Burrata tươi béo múp míp cắt đôi chảy kem bên cà chua bi và sốt pesto.' },
+      { id: 'it6', name: 'Súp Bí Đỏ Kem Nấm', emoji: '🥣', country: 'italy', tag: 'Mịn Màng 🥣', desc: 'Súp bí đỏ sánh mịn thơm bơ tỏi ăn kèm bánh mì bơ nướng giòn rụm.' },
+      { id: 'it7', name: 'Bò Bít Tết Thăn Ngoại', emoji: '🥩', country: 'italy', tag: 'Đậm Vị 🥩', desc: 'Bò nướng chảo gang bơ tỏi lá hương thảo ăn kèm khoai tây nghiền mịn.' },
+      { id: 'it8', name: 'Rượu Vang & Tapas', emoji: '🍾', country: 'italy', tag: 'Rooftop Chill 🌃', desc: 'Đĩa thịt nguội phô mai tổng hợp nhâm nhi cùng cocktail và ngắm hoàng hôn.' },
     ],
   },
   {
     id: 'dessert',
-    label: 'Đồ Ngọt & Cafe 🍰',
-    icon: '🍰',
+    label: 'Tráng Miệng & Cafe',
+    flag: '🍰',
     items: [
-      { id: 'd1', name: 'Bingsu Tuyết Mịn', emoji: '🍧', tag: 'Mát Lạnh 🍧', desc: 'Đá bào sữa tuyết phủ đầy trân châu phô mai và sữa đặc' },
-      { id: 'd2', name: 'Trà Sữa Ô Long', emoji: '🧋', tag: 'Đậm Vị 🧋', desc: 'Trà ô long nướng thơm nồng kết hợp lớp kem cheese sánh mịn' },
-      { id: 'd3', name: 'Tiramisu Ý', emoji: '🍰', tag: 'Đậm Đà ☕', desc: 'Bánh mascarpone mềm mịn đẫm vị cafe espresso thơm lừng' },
-      { id: 'd4', name: 'Chè Thái Sầu Riêng', emoji: '🥣', tag: 'Thơm Béo 🥥', desc: 'Sầu riêng tươi thơm phức cùng nước cốt dừa và thạch ngọc' },
-      { id: 'd5', name: 'Gelato Ý Thủ Công', emoji: '🍨', tag: 'Mềm Mịn 🍨', desc: 'Kem gelato hạt dẻ cười pistachio và socola đen nguyên chất' },
-      { id: 'd6', name: 'Bánh Crepe Sầu Riêng', emoji: '🥞', tag: 'Béo Ngậy 🥞', desc: 'Vỏ bánh mỏng tang bọc đầy kem tươi và múi sầu riêng vàng ươm' },
-      { id: 'd7', name: 'Croissant Bơ Pháp', emoji: '🥐', tag: 'Thơm Bơ 🥐', desc: 'Bánh sừng bò ngàn lớp thơm lừng bơ Pháp kèm tách socola nóng' },
-      { id: 'd8', name: 'Cafe Trứng Hà Nội', emoji: '☕', tag: 'Ấm Áp ☕', desc: 'Lớp kem trứng đánh bông béo ngậy trên nền cafe phin đậm đà' },
-    ],
-  },
-  {
-    id: 'romantic',
-    label: 'Hẹn Hò Lãng Mạn 🍷',
-    icon: '🍷',
-    items: [
-      { id: 'r1', name: 'Steak & Rượu Vang', emoji: '🍷', tag: 'Lãng Mạn 🕯️', desc: 'Thăn bò Wagyu nướng than hồng mềm tan bên ly vang đỏ nồng nàn' },
-      { id: 'r2', name: 'Rooftop Pasta & Cocktail', emoji: '🍝', tag: 'View Phố 🌃', desc: 'Ngắm toàn cảnh thành phố rực rỡ ánh đèn và thưởng thức pasta' },
-      { id: 'r3', name: 'Fine Dining Hải Sản', emoji: '🦞', tag: 'Sang Trọng ✨', desc: 'Tôm hùm bỏ lò phô mai và hàu nướng bơ tỏi trong không gian ấm cúng' },
-      { id: 'r4', name: 'Teppanyaki Nhật Bản', emoji: '🍱', tag: 'Biểu Diễn 🔥', desc: 'Xem đầu bếp múa dao xào nấu thịt bò và hải sản nóng hổi trước mắt' },
-      { id: 'r5', name: 'Sushi Omakase', emoji: '🍣', tag: 'Tinh Hoa 🍣', desc: 'Trải nghiệm ẩm thực cao cấp với từng miếng sushi tuyển chọn' },
-      { id: 'r6', name: 'Lẩu Uyên Ương Ánh Nến', emoji: '🍲', tag: 'Ấm Cúng 🕯️', desc: 'Nồi lẩu 2 ngăn chua cay & ngọt thanh bên bàn tiệc trải hoa' },
-      { id: 'r7', name: 'Pizza Nướng Củi', emoji: '🍕', tag: 'Thủ Công 🍕', desc: 'Đế bánh giòn rụm nướng lò củi phủ phô mai Burrata tươi béo' },
-      { id: 'r8', name: 'Fondue Phô Mai & Trái Cây', emoji: '🫕', tag: 'Ngọt Ngào 🍓', desc: 'Nhúng dâu tây và bánh mì giòn vào nồi phô mai hoặc socola ấm nóng' },
+      { id: 'de1', name: 'Trà Sữa Trân Châu', emoji: '🧋', country: 'dessert', tag: 'Hảo Ngọt 🧋', desc: 'Trà sữa đậm vị trà ô long nướng kết hợp trân châu đen dẻo quánh thơm lừng.' },
+      { id: 'de2', name: 'Bingsu Xoài Tuyết', emoji: '🍧', country: 'dessert', tag: 'Mát Lạnh 🥭', desc: 'Tuyết sữa bào mịn như bông tuyết phủ sốt xoài tươi thơm phức và kem vani.' },
+      { id: 'de3', name: 'Chè Sầu Riêng Béo', emoji: '🥣', country: 'dessert', tag: 'Thơm Béo 🥥', desc: 'Múi sầu riêng vàng ươm dầm nước cốt dừa béo ngậy, thạch ngọc và hạt lựu giòn.' },
+      { id: 'de4', name: 'Tiramisu Espresso', emoji: '🍰', country: 'dessert', tag: 'Đậm Đà ☕', desc: 'Bánh quy ladyfinger đẫm cafe espresso và kem mascarpone bồng bềnh phủ bột cacao.' },
+      { id: 'de5', name: 'Cafe Trứng Hà Nội', emoji: '☕', country: 'dessert', tag: 'Ấm Áp ☕', desc: 'Lớp kem trứng đánh bông mịn như mây trên nền cafe phin đắng nhẹ thơm phức.' },
+      { id: 'de6', name: 'Bánh Flan Caramel', emoji: '🍮', country: 'dessert', tag: 'Mềm Mịn 🍮', desc: 'Bánh flan trứng sữa mềm tan trong miệng đẫm nước sốt caramel cafe đắng nhẹ.' },
+      { id: 'de7', name: 'Kem Gelato Ý', emoji: '🍨', country: 'dessert', tag: 'Thủ Công 🍨', desc: 'Kem gelato hạt dẻ cười pistachio và dâu tây hữu cơ béo ngậy không ngấy.' },
+      { id: 'de8', name: 'Croissant Bơ Pháp', emoji: '🥐', country: 'dessert', tag: 'Thơm Bơ 🥐', desc: 'Bánh sừng bò ngàn lớp thơm lừng bơ Pháp nướng giòn tan ăn kèm socola nóng.' },
     ],
   },
 ];
 
 interface FoodRouletteProps {
-  onPickMeal?: (item: RouletteFoodItem) => void;
+  onPickMeal?: (item: FoodItem) => void;
   onOpenCookingModal?: () => void;
 }
 
@@ -105,13 +114,24 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
   onPickMeal,
   onOpenCookingModal,
 }) => {
-  const [selectedCategoryKey, setSelectedCategoryKey] = useState<'nang' | 'chang' | 'dessert' | 'romantic'>('nang');
+  const { profile } = useCoupleStore();
+  const [selectedCountry, setSelectedCountry] = useState<CountryCuisine>('vietnam');
   const [rotation, setRotation] = useState<number>(0);
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
-  const [selectedFood, setSelectedFood] = useState<RouletteFoodItem | null>(null);
+  const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const currentCategory = CATEGORIES_CONFIG.find((c) => c.id === selectedCategoryKey) || CATEGORIES_CONFIG[0];
-  const items = currentCategory.items;
+  // Get current country items + user custom items belonging to this category
+  const countryConfig =
+    COUNTRY_FOOD_DATABASE.find((c) => c.id === selectedCountry) ||
+    COUNTRY_FOOD_DATABASE[0];
+
+  const customItemsForCountry = (
+    profile.tastePreferences?.customFoodItems || []
+  ).filter((f) => f.country === selectedCountry);
+
+  // Combine items, ensure exact 8 slices on wheel (fill or slice)
+  const combinedItems = [...customItemsForCountry, ...countryConfig.items].slice(0, 8);
 
   const spinWheel = () => {
     if (isSpinning) return;
@@ -119,18 +139,15 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
     setIsSpinning(true);
     setSelectedFood(null);
 
-    const totalItems = items.length; // 8 items
-    const sliceAngle = 360 / totalItems; // 45 degrees
+    const totalItems = combinedItems.length;
+    const sliceAngle = 360 / totalItems;
 
     const winningTargetIndex = Math.floor(Math.random() * totalItems);
-    const extraFullTurns = 5; // 5 full turns
+    const extraFullTurns = 5;
 
-    // Formula for top pointer at 0 deg:
-    // θ = 360 * N + (360 - targetIndex * sliceAngle - sliceAngle/2)
     const targetOffset = 360 - winningTargetIndex * sliceAngle - sliceAngle / 2;
     const nextTargetAngle = 360 * extraFullTurns + targetOffset;
 
-    // Calculate delta to always spin forward smoothly
     const currentBase = Math.floor(rotation / 360) * 360;
     const finalRotation = currentBase + 360 * 2 + nextTargetAngle;
 
@@ -138,14 +155,13 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
 
     setTimeout(() => {
       setIsSpinning(false);
-      const winner = items[winningTargetIndex];
+      const winner = combinedItems[winningTargetIndex];
       setSelectedFood(winner);
       if (onPickMeal) onPickMeal(winner);
 
-      // Trigger Confetti celebration
       try {
         confetti({
-          particleCount: 110,
+          particleCount: 120,
           spread: 85,
           origin: { y: 0.6 },
           colors: ['#F472B6', '#FB7185', '#60A5FA', '#FDE68A', '#E11D48'],
@@ -156,34 +172,45 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
     }, 4500);
   };
 
-  const handleCategoryChange = (key: 'nang' | 'chang' | 'dessert' | 'romantic') => {
+  const handleCountryChange = (country: CountryCuisine) => {
     if (isSpinning) return;
-    setSelectedCategoryKey(key);
+    setSelectedCountry(country);
     setSelectedFood(null);
   };
 
   return (
     <div className="w-full flex flex-col items-center space-y-6">
-      {/* 4 Dynamic Category Switcher Tabs */}
-      <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 rounded-full bg-rose-50/90 border border-rose-200 shadow-inner">
-        {CATEGORIES_CONFIG.map((cat) => {
-          const isActive = selectedCategoryKey === cat.id;
+      {/* 5 Country Switcher Tabs */}
+      <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 p-1.5 rounded-full bg-rose-50/90 border border-rose-200/80 shadow-xs">
+        {COUNTRY_FOOD_DATABASE.map((cat) => {
+          const isActive = selectedCountry === cat.id;
           return (
             <button
               key={cat.id}
-              onClick={() => handleCategoryChange(cat.id)}
+              onClick={() => handleCountryChange(cat.id)}
               disabled={isSpinning}
-              className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 sm:px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 isActive
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/30 scale-105 border border-white/40'
+                  ? 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-400 text-white shadow-md shadow-rose-500/25 scale-105 border border-white/50'
                   : 'text-[#5E4761] hover:text-[#2D1E2F] hover:bg-white/80'
               }`}
             >
-              <span>{cat.icon}</span>
+              <span className="text-sm">{cat.flag}</span>
               <span>{cat.label}</span>
             </button>
           );
         })}
+      </div>
+
+      {/* Button mở Cài Đặt Khẩu Vị & Thêm Món */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/90 border border-rose-200 text-[#831843] text-xs font-bold shadow-xs hover:bg-rose-50 hover:border-rose-300 transition-all cursor-pointer"
+        >
+          <Settings2 className="w-3.5 h-3.5 text-rose-500" />
+          <span>Tùy chỉnh món ruột &amp; Khẩu vị cặp đôi</span>
+        </button>
       </div>
 
       {/* Visual Spinning Wheel Frame */}
@@ -194,7 +221,7 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
           <div className="w-0 h-0 border-l-[9px] border-l-transparent border-r-[9px] border-r-transparent border-t-[12px] border-t-pink-500 drop-shadow-md" />
         </div>
 
-        {/* Outer Glow Ring with Tulip/Star Pastel colors */}
+        {/* Outer Glow Ring */}
         <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-rose-200/60 via-amber-100/50 to-blue-200/50 blur-xl animate-pulse" />
 
         {/* The Animated SVG Wheel Container */}
@@ -205,8 +232,8 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
           onClick={spinWheel}
         >
           <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
-            {items.map((item, index) => {
-              const count = items.length;
+            {combinedItems.map((item, index) => {
+              const count = combinedItems.length;
               const angle = (360 / count) * (Math.PI / 180);
               const startAngle = index * angle;
               const endAngle = (index + 1) * angle;
@@ -234,7 +261,7 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
                     stroke="rgba(244, 114, 182, 0.35)"
                     strokeWidth="0.6"
                   />
-                  {/* Item Emoji */}
+                  {/* Item Emoji UTF-8 Standard */}
                   <text
                     x={textX}
                     y={textY}
@@ -242,7 +269,7 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
                     textAnchor="middle"
                     dominantBaseline="middle"
                     transform={`rotate(${index * 45 + 22.5 + 90}, ${textX}, ${textY})`}
-                    className="select-none font-medium"
+                    className="select-none font-sans font-medium"
                   >
                     {item.emoji}
                   </text>
@@ -251,82 +278,79 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
             })}
           </svg>
 
-          {/* Absolute Center Hub: Pastel Pink SPIN Button */}
-          <div className="absolute inset-0 m-auto w-18 h-18 rounded-full bg-white/90 p-1 shadow-xl border-2 border-rose-300 z-20 flex items-center justify-center">
-            <motion.div
-              whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.94 }}
-              className="w-full h-full rounded-full bg-gradient-to-tr from-rose-500 via-pink-500 to-amber-400 flex flex-col items-center justify-center text-white shadow-md cursor-pointer"
-            >
-              <span className="text-[11px] font-black tracking-wider leading-none">SPIN</span>
-              <span className="text-[7.5px] font-medium tracking-tighter opacity-90">QUAY</span>
-            </motion.div>
+          {/* Central Button / Hub */}
+          <div className="absolute inset-0 m-auto w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white/95 backdrop-blur-md border-2 border-rose-300 shadow-xl flex flex-col items-center justify-center text-center group">
+            <span className="text-xl sm:text-2xl group-hover:scale-125 transition-transform">
+              🎲
+            </span>
+            <span className="text-[8.5px] font-bold text-rose-600 font-mono tracking-wider uppercase">
+              {isSpinning ? 'Đang quay' : 'Chạm để quay'}
+            </span>
           </div>
         </motion.div>
       </div>
 
-      {/* Action Controls */}
-      <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+      {/* Main Spin CTA Button */}
+      <div className="flex flex-col sm:flex-row items-center gap-3">
         <button
           onClick={spinWheel}
           disabled={isSpinning}
-          className="py-3 px-8 rounded-full bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 hover:opacity-95 active:scale-95 text-white font-bold text-xs sm:text-sm shadow-lg shadow-rose-500/25 transition-all flex items-center gap-2 border border-white/50 cursor-pointer disabled:opacity-60"
+          className="px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 text-white font-bold text-sm shadow-xl shadow-rose-500/25 hover:opacity-95 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2 border border-white/40 cursor-pointer"
         >
           <RotateCw className={`w-4 h-4 ${isSpinning ? 'animate-spin' : ''}`} />
-          <span>{isSpinning ? 'Đang quay món...' : `Quay Danh Mục ${currentCategory.label}`}</span>
+          <span>{isSpinning ? 'Bánh xe đang quay...' : 'Quay Bánh Xe Ẩm Thực 🎲'}</span>
         </button>
 
         {onOpenCookingModal && (
           <button
             onClick={onOpenCookingModal}
-            className="py-3 px-6 rounded-full cream-glass-pill hover:bg-white text-[#4A3B4E] text-xs font-semibold active:scale-95 transition-all flex items-center gap-2 border border-rose-200 shadow-xs cursor-pointer"
+            className="px-6 py-3.5 rounded-full bg-white/90 border border-rose-200 text-[#4A1D2F] font-bold text-xs hover:bg-rose-50 active:scale-95 transition-all flex items-center gap-2 shadow-xs cursor-pointer"
           >
-            <ChefHat className="w-4 h-4 text-amber-500" />
-            <span>Hôm nay tự nấu ở nhà 🍳</span>
+            <ChefHat className="w-4 h-4 text-amber-600" />
+            <span>Chế Độ Cooking Mode (Nấu Ăn Tại Nhà)</span>
           </button>
         )}
       </div>
 
-      {/* Winning Result Card */}
+      {/* Winner Result Display Card */}
       {selectedFood && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 12 }}
+          initial={{ opacity: 0, scale: 0.9, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="w-full max-w-sm cream-glass-card rounded-3xl p-5 text-center space-y-3.5 border border-rose-300/80 shadow-xl relative overflow-hidden"
+          className="w-full max-w-md p-6 rounded-3xl bg-white/95 backdrop-blur-xl border-2 border-rose-300 shadow-2xl shadow-rose-900/10 space-y-4 text-center"
         >
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-[10px] font-mono tracking-wider uppercase border border-rose-200 font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-            <span>Vòng quay đã chọn món</span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-xs font-mono uppercase font-bold">
+            <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+            <span>Món Ăn Được Chọn Cho Buổi Hẹn!</span>
           </div>
 
-          <div className="flex items-center justify-center gap-3.5">
-            <span className="text-4xl p-2 rounded-2xl bg-rose-50 border border-rose-200/60 shadow-inner">
-              {selectedFood.emoji}
-            </span>
-            <div className="text-left">
-              <div className="flex items-center gap-1.5">
-                <h4 className="font-serif-italic text-2xl text-[#2D1E2F] font-bold">
-                  {selectedFood.name}
-                </h4>
-              </div>
-              <span className="inline-block text-[10px] font-semibold text-rose-600 bg-rose-100/80 px-2 py-0.2 rounded-full">
-                {selectedFood.tag}
-              </span>
-              <p className="text-[11px] text-[#715A75] font-light mt-1 line-clamp-2">
-                {selectedFood.desc}
-              </p>
-            </div>
+          <div className="space-y-1.5">
+            <div className="text-4xl">{selectedFood.emoji}</div>
+            <h3 className="font-serif font-bold text-2xl sm:text-3xl text-[#4A1D2F]">
+              {selectedFood.name}
+            </h3>
+            <p className="text-xs text-[#6B5B6E] leading-relaxed max-w-sm mx-auto font-light">
+              {selectedFood.desc}
+            </p>
           </div>
 
-          <Link
-            href={`/date-planner?cuisine=${encodeURIComponent(selectedFood.name)}`}
-            className="w-full py-2.5 px-4 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 hover:scale-102 active:scale-98 text-white font-bold text-xs shadow-md shadow-rose-500/25 transition-all flex items-center justify-center gap-1.5 border border-white/30"
-          >
-            <CalendarHeart className="w-4 h-4" />
-            <span>Lên Lịch Đi Ăn Món Này Ngay ➔</span>
-          </Link>
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-2.5">
+            <Link
+              href={`/date-planner?cuisine=${encodeURIComponent(selectedFood.name)}`}
+              className="px-5 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5"
+            >
+              <CalendarHeart className="w-4 h-4" />
+              <span>Chốt Món &amp; Lên Lịch Hẹn Ngay 💌</span>
+            </Link>
+          </div>
         </motion.div>
       )}
+
+      {/* Couple Profile Settings Modal */}
+      <CoupleSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   );
 };
