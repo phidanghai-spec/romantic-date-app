@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# references and guides
+/AI skill UI,UX
+/awesome-design-systems-master
+/public-apis-copy-master
+

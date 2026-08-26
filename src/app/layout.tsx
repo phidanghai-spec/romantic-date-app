@@ -1,35 +1,40 @@
 import type { Metadata } from "next";
-import { Quicksand, Inter } from "next/font/google";
+import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
+import FloralBackground from "@/components/ui/FloralBackground";
 
-const quicksand = Quicksand({
-  variable: "--font-quicksand",
-  subsets: ["latin", "vietnamese"],
-  weight: ["300", "400", "500", "600", "700"],
+const serifFont = Playfair_Display({
+  subsets: ["vietnamese", "latin"],
+  variable: "--font-serif",
+  weight: ["400", "500", "600", "700", "800"],
+  style: ["normal", "italic"],
 });
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin", "vietnamese"],
+const sansFont = Plus_Jakarta_Sans({
+  subsets: ["vietnamese", "latin"],
+  variable: "--font-sans",
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "🎀 Our Romantic Date Plan | Happy Anniversary! 🎀",
-  description: "Một trang web hẹn hò ngọt ngào dành cho ngày kỷ niệm của chúng mình. Cùng nhau lên kế hoạch cho buổi hẹn hò hoàn hảo nhé! ❤️",
+  title: "Our Date Night 🌸",
+  description: "Private Couple Dating App",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html
-      lang="vi"
-      className={`${quicksand.variable} ${inter.variable} h-full antialiased`}
-    >
-      <body className="min-h-full bg-gradient-to-br from-pink-50 via-white to-purple-50 text-gray-800 font-sans flex flex-col justify-between">
-        {children}
+    <html lang="vi" className={`${serifFont.variable} ${sansFont.variable}`}>
+      <body className="bg-[#FAF6EE] text-[#2D1E2F] font-sans relative antialiased min-h-screen selection:bg-rose-200 selection:text-rose-900">
+        <FloralBackground />
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-1">{children}</main>
+        </div>
       </body>
     </html>
   );

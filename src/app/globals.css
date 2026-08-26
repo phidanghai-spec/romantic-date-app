@@ -1,113 +1,121 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: var(--font-quicksand), var(--font-inter), sans-serif;
-  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-
-  --color-primary-pink: #ec4899;
-  --color-dark-pink: #f43f5e;
-  --color-light-pink: #fce7f3;
-  --color-purple-accent: #c084fc;
-  --color-purple-light: #f3e8ff;
-  --color-rose-light: #ffe4e6;
-  --color-gray-text: #374151;
-  --color-light-gray: #d1d5db;
-  --color-dark-gray: #1f2937;
-
-  /* Custom animations */
-  --animate-fade-in: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  --animate-pulse-slow: pulseSlow 2.5s infinite ease-in-out;
-  --animate-bounce-slow: bounceSlow 1.8s infinite ease-in-out;
-  --animate-bounce-delayed-1: bounceSlow 1.8s infinite ease-in-out 0.2s;
-  --animate-bounce-delayed-2: bounceSlow 1.8s infinite ease-in-out 0.4s;
-  --animate-float-slow: floatSlow 8s ease-in-out infinite;
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(12px) scale(0.98);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  @keyframes pulseSlow {
-    0%, 100% {
-      transform: scale(1);
-      box-shadow: 0 4px 20px 0 rgba(236, 72, 153, 0.2);
-    }
-    50% {
-      transform: scale(1.05);
-      box-shadow: 0 10px 30px 4px rgba(236, 72, 153, 0.4);
-    }
-  }
-
-  @keyframes bounceSlow {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-8px);
-    }
-  }
-
-  @keyframes floatSlow {
-    0%, 100% {
-      transform: translateY(0) rotate(0deg);
-    }
-    50% {
-      transform: translateY(-12px) rotate(3deg);
-    }
-  }
-}
-
 :root {
-  --background: #fff5f7;
-  --foreground: #374151;
+  --bg-cream: #FAF6EE;
+  --bg-cream-card: rgba(255, 255, 255, 0.85);
+  --text-main: #2D1E2F;
+  --text-muted: #6B5B6E;
+  --tulip-pink: #F472B6;
+  --blue-star: #60A5FA;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+/* Ép toàn bộ web về màu nền kem */
+html, body {
+  background-color: #FAF6EE !important;
+  color: #2D1E2F !important;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
-/* Custom scrollbar for mobile container */
+/* Thẻ Liquid Glass phiên bản Kem Ấm */
+.cream-glass {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(244, 114, 182, 0.25) !important;
+  box-shadow: 0 10px 30px -10px rgba(225, 29, 72, 0.08);
+}
+
+.cream-glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(253, 248, 247, 0.82) 100%) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(244, 114, 182, 0.25) !important;
+  box-shadow: 0 12px 36px -12px rgba(225, 29, 72, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.cream-glass-pill {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(244, 114, 182, 0.25);
+  box-shadow: 0 4px 16px -4px rgba(225, 29, 72, 0.08);
+}
+
+.cream-glass-pill:hover {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(244, 114, 182, 0.45);
+}
+
+.tulip-glow-border {
+  border: 1.5px solid rgba(244, 114, 182, 0.5);
+  box-shadow: 0 0 18px -2px rgba(244, 114, 182, 0.25);
+}
+
+/* Typography Helpers */
+.font-serif-italic {
+  font-family: var(--font-serif), 'Playfair Display', Georgia, serif;
+  font-style: italic;
+}
+
+/* Animation cánh hoa rơi */
+@keyframes floatPetal {
+  0% {
+    transform: translateY(-10vh) rotate(0deg) translateX(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(105vh) rotate(360deg) translateX(50px);
+    opacity: 0;
+  }
+}
+
+.petal {
+  position: fixed;
+  top: -10%;
+  pointer-events: none;
+  z-index: 0;
+  animation: floatPetal 10s linear infinite;
+  will-change: transform, opacity;
+}
+
+/* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 5px;
+  height: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(236, 72, 153, 0.2);
-  border-radius: 4px;
+  background: rgba(244, 114, 182, 0.25);
+  border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(236, 72, 153, 0.4);
+  background: rgba(244, 114, 182, 0.45);
 }
 
-/* Glassmorphism card utility */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+/* Dropdown Animation */
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-/* Custom animations helper classes */
-.delay-100 {
-  animation-delay: 100ms;
+.animate-dropdown {
+  animation: dropdownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.delay-200 {
-  animation-delay: 200ms;
-}
-.delay-300 {
-  animation-delay: 300ms;
-}
-.delay-400 {
-  animation-delay: 400ms;
-}
-.delay-500 {
-  animation-delay: 500ms;
-}
+
