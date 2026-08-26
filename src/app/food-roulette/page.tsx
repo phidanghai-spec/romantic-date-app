@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { ChefHat, CalendarHeart, Dices } from 'lucide-react';
 import { FoodRoulette } from '@/components/interactive/FoodRoulette';
-import { RecipeCookingModal } from '@/components/food/RecipeCookingModal';
+import { CookingRecipeModal } from '@/components/food/CookingRecipeModal';
 
 const VISUAL_FOOD_MENU = [
   {
@@ -106,7 +106,7 @@ export default function FoodRoulettePage() {
               className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full cream-glass-pill hover:bg-white text-amber-800 text-xs font-bold border border-amber-300 transition-all cursor-pointer shadow-2xs"
             >
               <ChefHat className="w-4 h-4 text-amber-600" />
-              <span>Gợi ý món tự nấu</span>
+              <span>Gợi ý món tự nấu (100% Tiếng Việt)</span>
             </button>
           </div>
 
@@ -162,8 +162,8 @@ export default function FoodRoulettePage() {
         </section>
       </main>
 
-      {/* Recipe Cooking Modal */}
-      <RecipeCookingModal
+      {/* Multi-National Cooking Recipe Modal */}
+      <CookingRecipeModal
         isOpen={isCookingModalOpen}
         onClose={() => setIsCookingModalOpen(false)}
       />
