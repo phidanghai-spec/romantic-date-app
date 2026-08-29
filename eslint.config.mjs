@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "awesome-design-systems-master/**",
+    "public-apis-copy-master/**",
+    "AI skill UI,UX/**",
+    "node_modules/**",
   ]),
 ]);
 

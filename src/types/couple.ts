@@ -1,5 +1,49 @@
 export type CountryCuisine = 'vietnam' | 'korea' | 'japan' | 'italy' | 'dessert' | 'custom';
 
+export interface UserProfileModel {
+  id: string;
+  email: string;
+  fullName: string;
+  avatarUrl?: string;
+  bio?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CoupleModel {
+  id: string;
+  user1Id?: string;
+  user2Id?: string;
+  inviteCode: string;
+  status: 'pending' | 'active' | 'paused';
+  anniversaryDate: string;
+  nextDateTime?: string;
+  nextDateLocation?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  partnerName?: string;
+  partnerAvatar?: string;
+}
+
+export interface CoupleMessageModel {
+  id: string;
+  coupleId: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  type: 'text' | 'sticker' | 'image' | 'date_invite';
+  mediaUrl?: string;
+  createdAt: string;
+  invitationData?: {
+    partnerName: string;
+    senderName: string;
+    dateTime: string;
+    cuisine: string;
+    location: string;
+    specialNote?: string;
+  };
+}
+
 export interface FoodItem {
   id: string;
   name: string;
@@ -10,14 +54,33 @@ export interface FoodItem {
   isCustom?: boolean;
 }
 
+export interface RecipeIngredient {
+  name: string;
+  amount: string;
+}
+
+export interface RecipeModel {
+  id: string;
+  title: string;
+  category?: string;
+  area?: string;
+  instructions: string[];
+  thumbnail: string;
+  youtubeUrl?: string;
+  youtubeId?: string;
+  ingredients: RecipeIngredient[];
+  tags?: string[];
+  sourceUrl?: string;
+}
+
 export interface TastePreferences {
   spiciness: number; // 0 (Không cay) -> 5 (Siêu cay 🌶️)
-  sweetness: 'low' | 'medium' | 'high'; // Ít ngọt / Vừa / Hảo ngọt
-  allergies: string[]; // Hải sản, Đậu phộng, Đồ sống, Sữa bò, Gluten...
-  favoriteCuisines: string[]; // Danh sách món ruột
-  dislikedFoods: string[]; // Món không thích / đã loại bỏ khỏi roulette
-  customFoodItems: FoodItem[]; // Món ăn do người dùng tự thêm
-  entertainmentHobbies: string[]; // Xem phim, Dạo phố, Cafe, Boardgame, Workshop DIY...
+  sweetness: 'low' | 'medium' | 'high';
+  allergies: string[];
+  favoriteCuisines: string[];
+  dislikedFoods: string[];
+  customFoodItems: FoodItem[];
+  entertainmentHobbies: string[];
 }
 
 export interface CoupleProfile {
@@ -25,8 +88,8 @@ export interface CoupleProfile {
   partnerName: string;
   anniversaryDate: string; // YYYY-MM-DD
   nextDateDate: string; // YYYY-MM-DD
-  nextDateTime: string; // HH:mm (e.g. 19:00)
-  nextDateLocation: string; // Quán ăn / Địa điểm quen thuộc
+  nextDateTime: string; // HH:mm
+  nextDateLocation: string;
   avatarUrl?: string;
   partnerAvatarUrl?: string;
   bio?: string;
@@ -34,8 +97,8 @@ export interface CoupleProfile {
 }
 
 export const DEFAULT_COUPLE_PROFILE: CoupleProfile = {
-  yourName: 'Anh yêu',
-  partnerName: 'Bé iu',
+  yourName: 'Người dùng',
+  partnerName: 'Người thương',
   anniversaryDate: '2023-11-20',
   nextDateDate: '2026-08-29',
   nextDateTime: '19:00',

@@ -15,9 +15,12 @@ import {
   X,
   Calendar,
   Utensils,
-  Camera
+  Camera,
+  Loader2
 } from 'lucide-react';
 import { DEFAULT_MEMORIES, DEFAULT_BUCKET_LIST, CoupleMemory, BucketListItem } from '@/lib/dateApis';
+import { uploadMemoryPhoto } from '@/lib/storage';
+import { useCoupleStore } from '@/lib/coupleStore';
 
 const RATING_LABELS: Record<number, string> = {
   1: 'Chưa như mong đợi 🥺',
@@ -28,12 +31,14 @@ const RATING_LABELS: Record<number, string> = {
 };
 
 export default function TimelinePage() {
+  const { profile, getDaysTogether } = useCoupleStore();
   const [memories, setMemories] = useState<CoupleMemory[]>(DEFAULT_MEMORIES);
   const [bucketList, setBucketList] = useState<BucketListItem[]>(DEFAULT_BUCKET_LIST);
   const [activeTab, setActiveTab] = useState<'memories' | 'bucketList'>('memories');
 
   // New Memory Modal Form states
   const [isAddMemoryOpen, setIsAddMemoryOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
   const [newLocation, setNewLocation] = useState('');
@@ -63,18 +68,20 @@ export default function TimelinePage() {
     );
   };
 
-  // Handle direct file upload (Base64 conversion)
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle direct file upload with HTML5 Canvas compression
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setNewPhotoUrl(event.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
+    try {
+      setIsUploading(true);
+      const uploadedUrl = await uploadMemoryPhoto(file, 'couple-memories');
+      setNewPhotoUrl(uploadedUrl);
+    } catch (err) {
+      console.error('Error uploading photo:', err);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleAddMemory = (e: React.FormEvent) => {
@@ -120,6 +127,7 @@ export default function TimelinePage() {
 
   const completedCount = bucketList.filter((b) => b.isCompleted).length;
   const progressPercent = Math.round((completedCount / bucketList.length) * 100) || 0;
+  const daysInLove = getDaysTogether();
 
   return (
     <div className="relative min-h-screen flex flex-col justify-between overflow-x-hidden pb-24 md:pb-12">
@@ -136,11 +144,11 @@ export default function TimelinePage() {
             </div>
 
             <h1 className="font-serif-italic text-5xl sm:text-6xl md:text-7xl text-[#2D1E2F] font-bold tracking-tight leading-none">
-              520 Ngày Bên Nhau 💕
+              {daysInLove} Ngày Bên Nhau 💕
             </h1>
 
             <p className="text-xs sm:text-sm text-[#715A75] font-light max-w-md mx-auto">
-              Cùng nhau đi qua từng con phố, thưởng thức hàng trăm món ngon và viết nên những kỷ niệm đẹp nhất.
+              Cùng nhau đi qua từng con phố, thưởng thức hàng trăm món ngon và viết nên những kỷ niệm đẹp nhất của {profile.yourName} &amp; {profile.partnerName}.
             </p>
           </div>
 
@@ -237,7 +245,7 @@ export default function TimelinePage() {
                               key={idx}
                               className={`w-3.5 h-3.5 ${
                                 idx < mem.rating
-                                  ? 'fill-amber-400 text-amber-500'
+                                   ? 'fill-amber-400 text-amber-500'
                                   : 'fill-rose-100 text-rose-200'
                               }`}
                             />
@@ -375,7 +383,7 @@ export default function TimelinePage() {
               <div>
                 <label className="text-[#5E4761] block mb-1.5 font-bold flex items-center gap-1.5">
                   <Camera className="w-3.5 h-3.5 text-rose-500" />
-                  Ảnh chụp kỷ niệm buổi hẹn
+                  Ảnh chụp kỷ niệm buổi hẹn (Tự động nén tối ưu)
                 </label>
 
                 <input
@@ -386,7 +394,12 @@ export default function TimelinePage() {
                   className="hidden"
                 />
 
-                {newPhotoUrl ? (
+                {isUploading ? (
+                  <div className="w-full h-36 rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/50 flex flex-col items-center justify-center gap-2">
+                    <Loader2 className="w-6 h-6 text-rose-500 animate-spin" />
+                    <span className="text-xs font-semibold text-rose-700">Đang nén và xử lý ảnh...</span>
+                  </div>
+                ) : newPhotoUrl ? (
                   <div className="relative w-full h-44 rounded-2xl overflow-hidden border-2 border-rose-300 shadow-sm group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -421,7 +434,7 @@ export default function TimelinePage() {
                     </div>
                     <div>
                       <span className="font-bold text-rose-700 block">Bấm để tải ảnh từ máy / điện thoại</span>
-                      <span className="text-[10px] text-[#886A8B] font-light">Hỗ trợ JPG, PNG, WEBP (Tự động xem trước)</span>
+                      <span className="text-[10px] text-[#886A8B] font-light">Hỗ trợ JPG, PNG, WEBP (Tự động nén &amp; xem trước)</span>
                     </div>
                   </div>
                 )}

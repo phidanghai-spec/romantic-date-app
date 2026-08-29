@@ -14,6 +14,7 @@ import {
   Check,
   Plus,
   Settings2,
+  BookOpen,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCoupleStore } from '@/lib/coupleStore';
@@ -37,6 +38,7 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
   const [selectedFood, setSelectedFood] = useState<RouletteFood | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
+  const [targetRecipeTitle, setTargetRecipeTitle] = useState<string | undefined>(undefined);
 
   // Get current country items from CUISINES_DATA
   const countryConfig =
@@ -106,6 +108,11 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
     if (isSpinning) return;
     setSelectedCountry(country);
     setSelectedFood(null);
+  };
+
+  const handleOpenSpecificRecipe = (dishName?: string) => {
+    setTargetRecipeTitle(dishName);
+    setIsRecipeModalOpen(true);
   };
 
   return (
@@ -234,7 +241,7 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
         <button
           onClick={() => {
             if (onOpenCookingModal) onOpenCookingModal();
-            else setIsRecipeModalOpen(true);
+            else handleOpenSpecificRecipe();
           }}
           className="px-6 py-3.5 rounded-full bg-white/95 border-1.5 border-rose-300 text-[#831843] font-bold text-xs hover:bg-rose-50 active:scale-95 transition-all flex items-center gap-2 shadow-xs cursor-pointer"
         >
@@ -243,7 +250,7 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
         </button>
       </div>
 
-      {/* ── Winner Result Display Card ── */}
+      {/* ── Winner Result Display Card (With 2-Way Interactive Recipe Shortcut) ── */}
       {selectedFood && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 15 }}
@@ -265,6 +272,7 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
             </p>
           </div>
 
+          {/* Action Row: Lên lịch hẹn & Xem công thức món này */}
           <div className="pt-2 flex flex-wrap items-center justify-center gap-2.5">
             <Link
               href={`/date-planner?cuisine=${encodeURIComponent(selectedFood.name)}`}
@@ -273,6 +281,16 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
               <CalendarHeart className="w-4 h-4" />
               <span>Chốt Món &amp; Lên Lịch Hẹn Ngay 💌</span>
             </Link>
+
+            {/* Shortcut Xem Công Thức Món Này */}
+            <button
+              type="button"
+              onClick={() => handleOpenSpecificRecipe(selectedFood.name)}
+              className="px-4 py-2.5 rounded-full bg-amber-50 border border-amber-300 text-amber-900 hover:bg-amber-100 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-amber-600" />
+              <span>Xem công thức món này 👨‍🍳</span>
+            </button>
           </div>
         </motion.div>
       )}
@@ -283,11 +301,12 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
         onClose={() => setIsSettingsOpen(false)}
       />
 
-      {/* Home Cooking Recipe Modal (Đồng bộ trực tiếp theo quốc gia đang chọn) */}
+      {/* Home Cooking Recipe Modal */}
       <CookingRecipeModal
         isOpen={isRecipeModalOpen}
         onClose={() => setIsRecipeModalOpen(false)}
         selectedCountry={selectedCountry}
+        initialRecipeTitle={targetRecipeTitle}
       />
     </div>
   );

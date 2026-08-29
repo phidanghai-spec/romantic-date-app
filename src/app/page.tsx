@@ -1,19 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import AmbientBokehBackground from '@/components/ui/AmbientBokehBackground';
 import FloatingDynamicIsland from '@/components/navigation/FloatingDynamicIsland';
-import { CoupleSettingsModal } from '@/components/profile/CoupleSettingsModal';
-import { useCoupleStore } from '@/lib/coupleStore';
-import { Heart, Sparkles, Dices, CalendarHeart, Settings2 } from 'lucide-react';
+import HeaderBadge from '@/components/layout/HeaderBadge';
+import { Sparkles, Dices, CalendarHeart } from 'lucide-react';
 
 export default function HomePage() {
-  const { profile, getDaysTogether } = useCoupleStore();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
-  const daysTogether = getDaysTogether();
-
   return (
     <div className="relative w-full min-h-screen bg-[#FAF6EE] text-[#2D1E2F] overflow-x-hidden selection:bg-rose-200 selection:text-rose-900 flex flex-col justify-between">
       {/* ══════════════════════════════════════════════
@@ -36,13 +30,13 @@ export default function HomePage() {
           <source src="/assets/tulip-3d-loop.mp4" type="video/mp4" />
         </video>
 
-        {/* Lớp phủ chuyển màu điện ảnh: gradient mềm đỉnh và đáy */}
+        {/* Lớp phủ chuyển màu điện ảnh */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-[#FAF6EE] z-10" />
         <div className="absolute inset-0 bg-radial from-transparent via-transparent to-black/30 z-10" />
       </div>
 
       {/* ══════════════════════════════════════════════
-          TẦNG 3: MINIMAL HEADER (LOGO & COUPLE STATUS)
+          TẦNG 3: MINIMAL HEADER (LOGO & COUPLE STATUS BADGE)
          ══════════════════════════════════════════════ */}
       <header className="relative z-30 w-full px-6 sm:px-12 py-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 group cursor-pointer">
@@ -54,66 +48,53 @@ export default function HomePage() {
           </span>
         </Link>
 
-        {/* Couple Profile Pill Button */}
-        <button
-          onClick={() => setIsSettingsOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/40 text-white text-xs font-semibold drop-shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer"
-          title="Mở hồ sơ & ngày kỷ niệm cặp đôi"
-        >
-          <Heart className="w-3.5 h-3.5 text-rose-300 fill-rose-300 animate-pulse" />
-          <span>
-            {profile.yourName} &amp; {profile.partnerName} • {daysTogether} Ngày 💕
-          </span>
-          <Settings2 className="w-3.5 h-3.5 text-white/70 ml-0.5" />
-        </button>
+        {/* Unified Couple Profile Header Badge (SSOT) */}
+        <HeaderBadge />
       </header>
 
       {/* ══════════════════════════════════════════════
-          TẦNG 4: HERO CINEMATIC CONTENT (GIỮA MÀN HÌNH)
+          TẦNG 4: HERO CINEMATIC CONTENT
          ══════════════════════════════════════════════ */}
       <main className="relative z-20 flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto -mt-6 sm:-mt-10 pb-28">
-        {/* Cinematic Headline */}
-        <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-bold text-white drop-shadow-2xl tracking-tight leading-[1.06]">
-          Love at first taste<span className="text-rose-300 italic">.</span>
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white/90 text-xs font-mono tracking-widest uppercase mb-4 shadow-sm animate-fade-in">
+          <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-spin" style={{ animationDuration: '6s' }} />
+          <span>Private Dating &amp; Activity Planner</span>
+        </div>
+
+        <h1 className="font-serif italic text-4xl sm:text-6xl md:text-7xl text-white font-bold tracking-tight drop-shadow-lg leading-tight sm:leading-tight mb-4">
+          Tối Nay Mình Đi Đâu, <br className="hidden sm:inline" />
+          <span className="font-sans not-italic text-transparent bg-clip-text bg-gradient-to-r from-rose-200 via-pink-100 to-amber-100">
+            Ăn Gì Nhỉ Em Iu? 🌸
+          </span>
         </h1>
 
-        {/* Description */}
-        <p className="text-white/95 text-sm sm:text-base md:text-lg max-w-xl mt-4 font-medium drop-shadow-lg leading-relaxed">
-          Xóa tan câu hỏi <em>&ldquo;Hôm nay ăn gì? Đi đâu chơi?&rdquo;</em> — Nơi cùng nhau quyết định bữa tối, lên lịch hẹn hò và lưu giữ mọi kỷ niệm ngọt ngào.
+        <p className="text-white/85 text-sm sm:text-base md:text-lg max-w-xl font-light leading-relaxed drop-shadow mb-8">
+          Không gian riêng tư chỉ dành cho 2 người để cùng quyết định món ngon, lên lịch hẹn hò và lưu giữ từng kỷ niệm ngọt ngào.
         </p>
 
-        {/* Primary Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-3.5 mt-8">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md justify-center">
           <Link
             href="/food-roulette"
-            className="px-7 py-3 rounded-full bg-white/95 hover:bg-white text-[#4A1D2F] font-bold text-xs sm:text-sm shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border border-white/50 cursor-pointer"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 hover:opacity-95 active:scale-95 text-white font-bold text-sm shadow-xl shadow-rose-950/20 border border-white/40 flex items-center justify-center gap-2 transition-all group cursor-pointer"
           >
-            <Dices className="w-4 h-4 text-rose-600" />
-            <span>Quay Vòng Ẩm Thực 🎲</span>
+            <Dices className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+            <span>Quay Vòng Ăn Gì Ngay 🎲</span>
           </Link>
 
           <Link
             href="/date-planner"
-            className="px-7 py-3 rounded-full bg-black/40 hover:bg-black/55 backdrop-blur-md border border-white/40 text-white font-bold text-xs sm:text-sm shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+            className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md active:scale-95 text-white font-semibold text-sm border border-white/50 flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
           >
             <CalendarHeart className="w-4 h-4 text-rose-300" />
-            <span>Gửi Lời Mời Hẹn Hò 💌</span>
+            <span>Gửi Thiệp Mời Hẹn Hò 💌</span>
           </Link>
         </div>
       </main>
 
       {/* ══════════════════════════════════════════════
-          TẦNG 5: FLOATING DYNAMIC ISLAND
+          TẦNG 5: FLOATING DYNAMIC ISLAND (ĐÁY MÀN HÌNH)
          ══════════════════════════════════════════════ */}
       <FloatingDynamicIsland />
-
-      {/* ══════════════════════════════════════════════
-          COUPLE SETTINGS MODAL
-         ══════════════════════════════════════════════ */}
-      <CoupleSettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
     </div>
   );
 }

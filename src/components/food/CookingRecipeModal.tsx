@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   X,
-  ChefHat,
   RotateCw,
   ExternalLink,
   CheckSquare,
@@ -12,51 +11,75 @@ import {
   Users,
   Sparkles,
   Heart,
-  Flame,
-  Check,
   Video,
 } from 'lucide-react';
-import { CUISINES_DATA, CountryId, HomeCookingRecipe } from '@/data/cuisines';
+import {
+  COOKING_RECIPES_DATABASE,
+  DetailedCookingRecipe,
+  CookingCountry,
+} from '@/data/cookingRecipes';
+
+const COUNTRIES_LIST: { id: CookingCountry; label: string; flag: string }[] = [
+  { id: 'vietnam', label: 'Việt Nam', flag: '🇻🇳' },
+  { id: 'korea', label: 'Hàn Quốc', flag: '🇰🇷' },
+  { id: 'japan', label: 'Nhật Bản', flag: '🇯🇵' },
+  { id: 'italy', label: 'Âu - Ý', flag: '🇮🇹' },
+  { id: 'dessert', label: 'Tráng Miệng', flag: '🍰' },
+];
 
 interface CookingRecipeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedCountry?: CountryId;
+  selectedCountry?: CookingCountry;
+  initialRecipeTitle?: string;
 }
 
 export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
   isOpen,
   onClose,
   selectedCountry = 'vietnam',
+  initialRecipeTitle,
 }) => {
-  const [currentCountryId, setCurrentCountryId] = useState<CountryId>(selectedCountry);
+  const [currentCountryId, setCurrentCountryId] = useState<CookingCountry>(selectedCountry);
   const [recipeIndex, setRecipeIndex] = useState<number>(0);
   const [checkedIngredients, setCheckedIngredients] = useState<Record<number, boolean>>({});
+  const [showEmbedVideo, setShowEmbedVideo] = useState<boolean>(true);
 
-  // Sync with selectedCountry when opened
+  // Sync state when opened
   useEffect(() => {
     if (isOpen) {
       setCurrentCountryId(selectedCountry);
-      setRecipeIndex(0);
       setCheckedIngredients({});
+      setShowEmbedVideo(true);
+
+      const filtered = COOKING_RECIPES_DATABASE.filter((r) => r.country === selectedCountry);
+      if (initialRecipeTitle && filtered.length > 0) {
+        const foundIdx = filtered.findIndex(
+          (r) =>
+            r.title.toLowerCase().includes(initialRecipeTitle.toLowerCase()) ||
+            initialRecipeTitle.toLowerCase().includes(r.title.toLowerCase())
+        );
+        setRecipeIndex(foundIdx >= 0 ? foundIdx : 0);
+      } else {
+        setRecipeIndex(0);
+      }
     }
-  }, [isOpen, selectedCountry]);
+  }, [isOpen, selectedCountry, initialRecipeTitle]);
 
   if (!isOpen) return null;
 
-  // Get recipes for active country
-  const countryData =
-    CUISINES_DATA.find((c) => c.id === currentCountryId) || CUISINES_DATA[0];
-  const availableRecipes = countryData.homeRecipes;
-  const currentRecipe: HomeCookingRecipe =
-    availableRecipes[recipeIndex % availableRecipes.length] || availableRecipes[0];
+  // Filter recipes by current country
+  const countryRecipes = COOKING_RECIPES_DATABASE.filter((r) => r.country === currentCountryId);
+  const activeRecipes = countryRecipes.length > 0 ? countryRecipes : COOKING_RECIPES_DATABASE;
+  const currentRecipe: DetailedCookingRecipe =
+    activeRecipes[recipeIndex % activeRecipes.length] || activeRecipes[0];
 
   const handleNextRecipe = () => {
     setCheckedIngredients({});
-    setRecipeIndex((prev) => (prev + 1) % availableRecipes.length);
+    setRecipeIndex((prev) => (prev + 1) % activeRecipes.length);
   };
 
-  const handleCountryTabChange = (countryId: CountryId) => {
+  const handleCountryTabChange = (countryId: CookingCountry) => {
     setCurrentCountryId(countryId);
     setRecipeIndex(0);
     setCheckedIngredients({});
@@ -65,6 +88,9 @@ export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
   const toggleIngredient = (idx: number) => {
     setCheckedIngredients((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
+
+  const activeCountryMeta =
+    COUNTRIES_LIST.find((c) => c.id === currentCountryId) || COUNTRIES_LIST[0];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-md animate-fadeIn">
@@ -82,7 +108,7 @@ export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
                   Couple Cooking Mode
                 </span>
                 <span className="text-xs font-semibold text-[#886A8B]">
-                  • {countryData.flag} Ẩm thực {countryData.label}
+                  • {activeCountryMeta.flag} Ẩm thực {activeCountryMeta.label}
                 </span>
               </div>
               <h2 className="font-serif font-bold text-xl sm:text-2xl text-[#4A1D2F]">
@@ -101,7 +127,7 @@ export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
 
         {/* ── 5 Country Tabs Switcher ── */}
         <div className="flex border-b border-rose-100 px-4 pt-2 bg-rose-50/40 gap-1.5 overflow-x-auto custom-scrollbar">
-          {CUISINES_DATA.map((country) => {
+          {COUNTRIES_LIST.map((country) => {
             const isActive = currentCountryId === country.id;
             return (
               <button
@@ -157,6 +183,37 @@ export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
               {currentRecipe.description}
             </p>
           </div>
+
+          {/* ── YouTube Video Embed Section ── */}
+          {currentRecipe.youtubeId && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-red-700 flex items-center gap-1.5">
+                  <Video className="w-4 h-4 text-red-600" />
+                  Video Hướng Dẫn Nấu Chi Tiết (YouTube)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowEmbedVideo(!showEmbedVideo)}
+                  className="text-[11px] text-[#886A8B] hover:text-rose-600 cursor-pointer underline"
+                >
+                  {showEmbedVideo ? 'Thu nhỏ video' : 'Hiện video'}
+                </button>
+              </div>
+
+              {showEmbedVideo && (
+                <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-rose-200 shadow-md bg-black">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${currentRecipe.youtubeId}?autoplay=0&rel=0`}
+                    title={currentRecipe.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="w-full h-full border-0"
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Khung Nguyên Liệu Đi Chợ (Interactive Checkboxes) */}
           <div className="space-y-3">
@@ -240,13 +297,13 @@ export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
         {/* ── Footer Actions ── */}
         <div className="px-6 py-4 border-t border-rose-200/80 bg-rose-50/50 flex flex-wrap items-center justify-between gap-2.5">
           {/* Nút Đổi Món Khác */}
-          {availableRecipes.length > 1 && (
+          {activeRecipes.length > 1 && (
             <button
               onClick={handleNextRecipe}
               className="px-4 py-2.5 rounded-full bg-white border border-rose-300 text-[#831843] text-xs font-bold hover:bg-rose-100 flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
             >
               <RotateCw className="w-3.5 h-3.5" />
-              <span>Đổi món khác ({recipeIndex + 1}/{availableRecipes.length})</span>
+              <span>Đổi món khác ({recipeIndex + 1}/{activeRecipes.length})</span>
             </button>
           )}
 
@@ -259,7 +316,7 @@ export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
               className="px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-red-500/20 transition-all cursor-pointer"
             >
               <Video className="w-3.5 h-3.5" />
-              <span>Xem Video Hướng Dẫn YouTube</span>
+              <span>Mở trên YouTube</span>
               <ExternalLink className="w-3 h-3 ml-0.5" />
             </a>
 
@@ -275,3 +332,5 @@ export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
     </div>
   );
 };
+
+export default CookingRecipeModal;

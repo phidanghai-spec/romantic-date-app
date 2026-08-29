@@ -2,14 +2,19 @@
 
 :root {
   --bg-cream: #FAF6EE;
-  --bg-cream-card: rgba(255, 255, 255, 0.85);
+  --bg-cream-soft: #FFFDF9;
+  --bg-cream-card: rgba(255, 255, 255, 0.92);
   --text-main: #2D1E2F;
+  --text-primary: #4A1D2F;
   --text-muted: #6B5B6E;
+  --text-accent: #831843;
   --tulip-pink: #F472B6;
-  --blue-star: #60A5FA;
+  --tulip-rose: #FB7185;
+  --star-blue: #60A5FA;
+  --sun-yellow: #FDE68A;
 }
 
-/* Ép toàn bộ web về màu nền kem */
+/* Base body in Warm Cream */
 html, body {
   background-color: #FAF6EE !important;
   color: #2D1E2F !important;
@@ -19,39 +24,39 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Thẻ Liquid Glass phiên bản Kem Ấm */
+/* Cream Liquid Glass utilities */
 .cream-glass {
-  background: rgba(255, 255, 255, 0.85) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(244, 114, 182, 0.25) !important;
-  box-shadow: 0 10px 30px -10px rgba(225, 29, 72, 0.08);
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(244, 114, 182, 0.3) !important;
+  box-shadow: 0 10px 30px -10px rgba(131, 24, 67, 0.08);
 }
 
 .cream-glass-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(253, 248, 247, 0.82) 100%) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 253, 249, 0.88) 100%) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(244, 114, 182, 0.25) !important;
-  box-shadow: 0 12px 36px -12px rgba(225, 29, 72, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(244, 114, 182, 0.3) !important;
+  box-shadow: 0 12px 36px -12px rgba(131, 24, 67, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 .cream-glass-pill {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(244, 114, 182, 0.25);
-  box-shadow: 0 4px 16px -4px rgba(225, 29, 72, 0.08);
+  border: 1px solid rgba(244, 114, 182, 0.3);
+  box-shadow: 0 4px 16px -4px rgba(131, 24, 67, 0.08);
 }
 
 .cream-glass-pill:hover {
-  background: rgba(255, 255, 255, 0.98);
-  border-color: rgba(244, 114, 182, 0.45);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(244, 114, 182, 0.55);
 }
 
 .tulip-glow-border {
   border: 1.5px solid rgba(244, 114, 182, 0.5);
-  box-shadow: 0 0 18px -2px rgba(244, 114, 182, 0.25);
+  box-shadow: 0 0 20px -2px rgba(244, 114, 182, 0.3);
 }
 
 /* Typography Helpers */
@@ -60,20 +65,20 @@ html, body {
   font-style: italic;
 }
 
-/* Animation cánh hoa rơi */
+/* Animation Falling Petals */
 @keyframes floatPetal {
   0% {
     transform: translateY(-10vh) rotate(0deg) translateX(0);
     opacity: 0;
   }
   15% {
-    opacity: 0.8;
+    opacity: 0.85;
   }
   90% {
-    opacity: 0.8;
+    opacity: 0.85;
   }
   100% {
-    transform: translateY(105vh) rotate(360deg) translateX(50px);
+    transform: translateY(105vh) rotate(360deg) translateX(60px);
     opacity: 0;
   }
 }
@@ -83,24 +88,24 @@ html, body {
   top: -10%;
   pointer-events: none;
   z-index: 0;
-  animation: floatPetal 10s linear infinite;
+  animation: floatPetal 11s linear infinite;
   will-change: transform, opacity;
 }
 
-/* Custom scrollbar */
+/* Custom Scrollbars */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(250, 246, 238, 0.5);
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(244, 114, 182, 0.25);
+  background: rgba(244, 114, 182, 0.35);
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(244, 114, 182, 0.45);
+  background: rgba(244, 114, 182, 0.6);
 }
 
 /* Dropdown Animation */
@@ -119,3 +124,11 @@ html, body {
   animation: dropdownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
