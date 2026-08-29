@@ -1,6 +1,6 @@
 /**
  * RFC 5545 iCalendar (.ics) Generator for Couple Date Invitations
- * Handles local Vietnam Timezone (Asia/Ho_Chi_Minh) accurately without naive UTC shifts.
+ * Accurately handles date rollovers and Vietnam Timezone (Asia/Ho_Chi_Minh).
  */
 
 export interface ICSOptions {
@@ -12,6 +12,16 @@ export interface ICSOptions {
   durationHours?: number; // Default: 3
 }
 
+function formatICSDate(dateObj: Date): string {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  const h = String(dateObj.getHours()).padStart(2, '0');
+  const min = String(dateObj.getMinutes()).padStart(2, '0');
+  const s = String(dateObj.getSeconds()).padStart(2, '0');
+  return `${y}${m}${d}T${h}${min}${s}`;
+}
+
 export function generateICSContent({
   title,
   description = 'Buổi hẹn hò lãng mạn của hai đứa mình 💕',
@@ -20,20 +30,21 @@ export function generateICSContent({
   startTime,
   durationHours = 3,
 }: ICSOptions): string {
-  const cleanDate = (startDate || new Date().toISOString().split('T')[0]).replace(/-/g, '');
-  const [hours, minutes] = (startTime || '19:00').split(':');
-  const startHourNum = parseInt(hours, 10) || 19;
-  const startMinNum = parseInt(minutes, 10) || 0;
+  const [yearStr, monthStr, dayStr] = (startDate || new Date().toISOString().split('T')[0]).split('-');
+  const [hourStr, minStr] = (startTime || '19:00').split(':');
 
-  const startHourStr = String(startHourNum).padStart(2, '0');
-  const startMinStr = String(startMinNum).padStart(2, '0');
+  const startYear = parseInt(yearStr, 10) || new Date().getFullYear();
+  const startMonth = (parseInt(monthStr, 10) || (new Date().getMonth() + 1)) - 1;
+  const startDay = parseInt(dayStr, 10) || new Date().getDate();
+  const startHour = parseInt(hourStr, 10) || 19;
+  const startMin = parseInt(minStr, 10) || 0;
 
-  const endHourNum = Math.min(23, startHourNum + durationHours);
-  const endHourStr = String(endHourNum).padStart(2, '0');
-  const endMinStr = startMinStr;
+  // Build full start & end Date objects to handle multi-hour rollovers past midnight
+  const startDateObj = new Date(startYear, startMonth, startDay, startHour, startMin, 0);
+  const endDateObj = new Date(startDateObj.getTime() + durationHours * 60 * 60 * 1000);
 
-  const dtStart = `${cleanDate}T${startHourStr}${startMinStr}00`;
-  const dtEnd = `${cleanDate}T${endHourStr}${endMinStr}00`;
+  const dtStart = formatICSDate(startDateObj);
+  const dtEnd = formatICSDate(endDateObj);
   const nowStamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   const uid = `date-${Date.now()}-${Math.random().toString(36).substring(2, 8)}@ourdatenight.app`;
 

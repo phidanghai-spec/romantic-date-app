@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   X,
   Heart,
@@ -51,10 +51,7 @@ interface CoupleProfileModalProps {
   onClose: () => void;
 }
 
-export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
+const CoupleProfileModalContent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const {
     profile,
     updateProfile,
@@ -66,7 +63,7 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
   const [activeTab, setActiveTab] = useState<'profile' | 'taste' | 'custom_food'>('profile');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Form local state synced with SSOT
+  // Form local state initialized cleanly from SSOT on modal mount (no set-state-in-effect)
   const [yourName, setYourName] = useState(profile.yourName);
   const [partnerName, setPartnerName] = useState(profile.partnerName);
   const [anniversaryDate, setAnniversaryDate] = useState(profile.anniversaryDate);
@@ -81,21 +78,6 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
   const [customCountry, setCustomCountry] = useState<CountryCuisine>('vietnam');
   const [customTag, setCustomTag] = useState('');
   const [customDesc, setCustomDesc] = useState('');
-
-  // Sync state whenever modal opens
-  useEffect(() => {
-    if (isOpen) {
-      setYourName(profile.yourName);
-      setPartnerName(profile.partnerName);
-      setAnniversaryDate(profile.anniversaryDate);
-      setNextDateDate(profile.nextDateDate);
-      setNextDateTime(profile.nextDateTime);
-      setNextDateLocation(profile.nextDateLocation);
-      setBio(profile.bio || '');
-    }
-  }, [isOpen, profile]);
-
-  if (!isOpen) return null;
 
   // Realtime calculated preview days
   const dynamicPreviewDays = calculateDatingDays(anniversaryDate);
@@ -542,6 +524,15 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
       </div>
     </div>
   );
+};
+
+export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
+  if (!isOpen) return null;
+
+  return <CoupleProfileModalContent onClose={onClose} />;
 };
 
 export default CoupleProfileModal;

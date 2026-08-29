@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   X,
   RotateCw,
@@ -34,39 +34,32 @@ interface CookingRecipeModalProps {
   initialRecipeTitle?: string;
 }
 
-export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
-  isOpen,
+interface ModalContentProps {
+  onClose: () => void;
+  selectedCountry: CookingCountry;
+  initialRecipeTitle?: string;
+}
+
+const CookingRecipeModalContent: React.FC<ModalContentProps> = ({
   onClose,
-  selectedCountry = 'vietnam',
+  selectedCountry,
   initialRecipeTitle,
 }) => {
   const [currentCountryId, setCurrentCountryId] = useState<CookingCountry>(selectedCountry);
-  const [recipeIndex, setRecipeIndex] = useState<number>(0);
-  const [checkedIngredients, setCheckedIngredients] = useState<Record<number, boolean>>({});
-  const [showEmbedVideo, setShowEmbedVideo] = useState<boolean>(true);
-
-  // Sync state when opened
-  useEffect(() => {
-    if (isOpen) {
-      setCurrentCountryId(selectedCountry);
-      setCheckedIngredients({});
-      setShowEmbedVideo(true);
-
-      const filtered = COOKING_RECIPES_DATABASE.filter((r) => r.country === selectedCountry);
-      if (initialRecipeTitle && filtered.length > 0) {
-        const foundIdx = filtered.findIndex(
-          (r) =>
-            r.title.toLowerCase().includes(initialRecipeTitle.toLowerCase()) ||
-            initialRecipeTitle.toLowerCase().includes(r.title.toLowerCase())
-        );
-        setRecipeIndex(foundIdx >= 0 ? foundIdx : 0);
-      } else {
-        setRecipeIndex(0);
-      }
+  const [recipeIndex, setRecipeIndex] = useState<number>(() => {
+    const filtered = COOKING_RECIPES_DATABASE.filter((r) => r.country === selectedCountry);
+    if (initialRecipeTitle && filtered.length > 0) {
+      const foundIdx = filtered.findIndex(
+        (r) =>
+          r.title.toLowerCase().includes(initialRecipeTitle.toLowerCase()) ||
+          initialRecipeTitle.toLowerCase().includes(r.title.toLowerCase())
+      );
+      return foundIdx >= 0 ? foundIdx : 0;
     }
-  }, [isOpen, selectedCountry, initialRecipeTitle]);
-
-  if (!isOpen) return null;
+    return 0;
+  });
+  const [checkedIngredients, setCheckedIngredients] = useState<Record<number, boolean>>({});
+  const showEmbedVideo = true;
 
   // Filter recipes by current country
   const countryRecipes = COOKING_RECIPES_DATABASE.filter((r) => r.country === currentCountryId);
@@ -146,83 +139,74 @@ export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
           })}
         </div>
 
-        {/* ── Recipe Body Scrollable ── */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6 custom-scrollbar">
-          {/* Card Tiêu Đề Món Ăn & Badges */}
-          <div className="space-y-3 p-5 rounded-3xl bg-gradient-to-r from-rose-50/70 via-pink-50/50 to-amber-50/60 border border-rose-200">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="px-3 py-1 rounded-full bg-white text-[#831843] text-xs font-bold font-mono border border-rose-200 shadow-2xs">
-                {currentRecipe.tag}
-              </span>
-
-              {/* Badges: Thời gian, khẩu phần, độ khó */}
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#6B5B6E]">
-                <span className="inline-flex items-center gap-1 bg-white/90 px-2.5 py-1 rounded-full border border-rose-100">
-                  <Clock className="w-3.5 h-3.5 text-amber-500" />
-                  {currentRecipe.cookTime}
-                </span>
-                <span className="inline-flex items-center gap-1 bg-white/90 px-2.5 py-1 rounded-full border border-rose-100">
-                  <Users className="w-3.5 h-3.5 text-rose-500" />
-                  {currentRecipe.servings}
-                </span>
-                <span className="inline-flex items-center gap-1 bg-white/90 px-2.5 py-1 rounded-full border border-rose-100">
-                  <Sparkles className="w-3.5 h-3.5 text-pink-500" />
-                  {currentRecipe.difficulty}
-                </span>
+        {/* ── Scrollable Body ── */}
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 custom-scrollbar text-xs">
+          {/* Dish Header Info Card */}
+          <div className="p-5 rounded-3xl bg-gradient-to-r from-rose-50/70 via-pink-50/50 to-amber-50/70 border border-rose-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-3xl">{currentRecipe.emoji}</span>
+                <div>
+                  <h3 className="font-serif font-bold text-2xl text-[#4A1D2F] leading-tight">
+                    {currentRecipe.title}
+                  </h3>
+                  <span className="text-[11px] font-mono text-rose-600 font-semibold">
+                    Độ khó: {currentRecipe.difficulty} • Tag: {currentRecipe.tag}
+                  </span>
+                </div>
               </div>
+              <p className="text-xs text-[#6B5B6E] font-light max-w-md pt-1">
+                {currentRecipe.description}
+              </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-3xl sm:text-4xl">{currentRecipe.emoji}</span>
-              <h3 className="font-serif font-bold text-2xl sm:text-3xl text-[#4A1D2F]">
-                {currentRecipe.title}
-              </h3>
-            </div>
-
-            <p className="text-xs sm:text-sm text-[#6B5B6E] leading-relaxed font-light">
-              {currentRecipe.description}
-            </p>
+            {/* Switch / Next Recipe Button */}
+            <button
+              onClick={handleNextRecipe}
+              className="px-4 py-2 rounded-full bg-white border border-rose-200 text-[#831843] font-bold text-xs shadow-xs hover:bg-rose-50 flex items-center gap-1.5 transition-all self-end sm:self-auto cursor-pointer"
+            >
+              <RotateCw className="w-3.5 h-3.5 text-rose-500" />
+              <span>Đổi món khác ({recipeIndex + 1}/{activeRecipes.length})</span>
+            </button>
           </div>
 
-          {/* ── YouTube Video Embed Section ── */}
-          {currentRecipe.youtubeId && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-red-700 flex items-center gap-1.5">
-                  <Video className="w-4 h-4 text-red-600" />
-                  Video Hướng Dẫn Nấu Chi Tiết (YouTube)
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowEmbedVideo(!showEmbedVideo)}
-                  className="text-[11px] text-[#886A8B] hover:text-rose-600 cursor-pointer underline"
-                >
-                  {showEmbedVideo ? 'Thu nhỏ video' : 'Hiện video'}
-                </button>
-              </div>
-
-              {showEmbedVideo && (
-                <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-rose-200 shadow-md bg-black">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${currentRecipe.youtubeId}?autoplay=0&rel=0`}
-                    title={currentRecipe.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    className="w-full h-full border-0"
-                  />
-                </div>
-              )}
+          {/* Quick Metrics Bar */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 text-center">
+            <div className="p-3 rounded-2xl bg-white border border-rose-100/90 shadow-2xs">
+              <Clock className="w-4 h-4 mx-auto mb-1 text-rose-500" />
+              <span className="text-[10px] text-[#886A8B] block">Thời gian nấu</span>
+              <strong className="text-xs text-[#2D1E2F]">{currentRecipe.cookTime}</strong>
             </div>
-          )}
 
-          {/* Khung Nguyên Liệu Đi Chợ (Interactive Checkboxes) */}
+            <div className="p-3 rounded-2xl bg-white border border-rose-100/90 shadow-2xs">
+              <Users className="w-4 h-4 mx-auto mb-1 text-pink-500" />
+              <span className="text-[10px] text-[#886A8B] block">Khẩu phần</span>
+              <strong className="text-xs text-[#2D1E2F]">{currentRecipe.servings}</strong>
+            </div>
+          </div>
+
+          {/* Romantic Couple Tip Alert */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-pink-100/80 via-rose-100/60 to-amber-100/70 border border-pink-300/80 flex items-start gap-3 shadow-2xs">
+            <Sparkles className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold text-xs text-[#4A1D2F] block">
+                Mẹo gắn kết cặp đôi khi nấu món này 💕
+              </span>
+              <p className="text-[11px] text-[#6B5B6E] font-light mt-0.5 leading-relaxed">
+                {currentRecipe.coupleTip}
+              </p>
+            </div>
+          </div>
+
+          {/* Ingredients Checklist */}
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-serif font-bold text-lg text-[#4A1D2F] flex items-center gap-2">
-                <span>🛒 Danh Sách Nguyên Liệu Cần Mua ({currentRecipe.ingredients.length})</span>
-              </h4>
-              <span className="text-[11px] text-[#886A8B] font-mono">
-                Tích chọn khi đi siêu thị
+            <div className="flex items-center justify-between border-b border-rose-200/60 pb-1.5">
+              <span className="font-bold text-xs text-[#4A1D2F] flex items-center gap-1.5">
+                <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
+                Nguyên liệu chuẩn bị ({currentRecipe.ingredients.length} mục):
+              </span>
+              <span className="text-[10px] text-[#886A8B] italic">
+                Chạm vào để đánh dấu đã mua
               </span>
             </div>
 
@@ -234,102 +218,123 @@ export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
                     key={idx}
                     type="button"
                     onClick={() => toggleIngredient(idx)}
-                    className={`p-3 rounded-2xl border text-left flex items-start justify-between gap-2 transition-all cursor-pointer ${
+                    className={`p-2.5 rounded-2xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
                       isChecked
-                        ? 'bg-rose-100/60 border-rose-300 text-[#4A1D2F] line-through opacity-70'
-                        : 'bg-white border-rose-200/90 text-[#2D1E2F] hover:bg-rose-50/60 shadow-2xs'
+                        ? 'bg-emerald-50/70 border-emerald-300 text-emerald-800 line-through opacity-75'
+                        : 'bg-white border-rose-100 hover:border-rose-300 text-[#2D1E2F]'
                     }`}
                   >
-                    <div className="space-y-0.5">
-                      <div className="text-xs font-bold">{ing.name}</div>
-                      <div className="text-[11px] text-rose-600 font-medium">
-                        {ing.amount}
-                      </div>
-                    </div>
                     {isChecked ? (
-                      <CheckSquare className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                      <CheckSquare className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                     ) : (
-                      <Square className="w-4 h-4 text-rose-300 shrink-0 mt-0.5" />
+                      <Square className="w-4 h-4 text-[#886A8B] shrink-0 mt-0.5" />
                     )}
+                    <span className="text-xs flex-1">
+                      <strong>{ing.name}</strong>: {ing.amount}
+                    </span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Khung Hướng Dẫn Cách Nấu Từng Bước */}
-          <div className="space-y-3.5">
-            <h4 className="font-serif font-bold text-lg text-[#4A1D2F] flex items-center gap-2">
-              <span>👨‍🍳 Cách Chế Biến Từng Bước (Step-by-Step)</span>
-            </h4>
+          {/* Step by Step Cooking Instructions */}
+          <div className="space-y-3">
+            <div className="border-b border-rose-200/60 pb-1.5">
+              <span className="font-bold text-xs text-[#4A1D2F] block">
+                Các bước thực hiện chi tiết (Bước từng bước):
+              </span>
+            </div>
 
             <div className="space-y-3">
-              {currentRecipe.steps.map((step, sIdx) => (
+              {currentRecipe.steps.map((stepText, idx) => (
                 <div
-                  key={sIdx}
-                  className="p-4 rounded-2xl bg-white border border-rose-200/80 shadow-2xs flex items-start gap-3.5"
+                  key={idx}
+                  className="p-3.5 rounded-2xl bg-white border border-rose-100/90 shadow-2xs space-y-1.5"
                 >
-                  <span className="w-6 h-6 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-                    {sIdx + 1}
-                  </span>
-                  <p className="text-xs sm:text-[13px] text-[#2D1E2F] leading-relaxed font-normal">
-                    {step}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-rose-700 font-mono">
+                      Bước {idx + 1}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#4A1D2F] font-light leading-relaxed">
+                    {stepText}
                   </p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Mẹo Nhỏ Cho Cặp Đôi (Couple Tip) */}
-          <div className="p-4 rounded-2xl bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200 flex items-start gap-3">
-            <Heart className="w-5 h-5 text-rose-500 shrink-0 mt-0.5 fill-rose-500/30" />
-            <div className="space-y-0.5">
-              <span className="text-xs font-bold text-[#831843]">
-                Mẹo Nhỏ Để Buổi Nấu Ăn Đôi Thêm Ngọt Ngào 💕
-              </span>
-              <p className="text-xs text-[#6B5B6E] leading-relaxed italic">
-                {currentRecipe.coupleTip}
-              </p>
+          {/* YouTube Video Guide Section */}
+          <div className="p-4 rounded-3xl bg-white border border-rose-200 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Video className="w-4 h-4 text-red-500" />
+                <span className="font-bold text-xs text-[#4A1D2F]">
+                  Video hướng dẫn nấu món này:
+                </span>
+              </div>
+
+              <a
+                href={currentRecipe.youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] text-red-600 font-bold hover:underline"
+              >
+                <span>Xem trên YouTube</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
             </div>
-          </div>
-        </div>
 
-        {/* ── Footer Actions ── */}
-        <div className="px-6 py-4 border-t border-rose-200/80 bg-rose-50/50 flex flex-wrap items-center justify-between gap-2.5">
-          {/* Nút Đổi Món Khác */}
-          {activeRecipes.length > 1 && (
-            <button
-              onClick={handleNextRecipe}
-              className="px-4 py-2.5 rounded-full bg-white border border-rose-300 text-[#831843] text-xs font-bold hover:bg-rose-100 flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
-            >
-              <RotateCw className="w-3.5 h-3.5" />
-              <span>Đổi món khác ({recipeIndex + 1}/{activeRecipes.length})</span>
-            </button>
-          )}
-
-          <div className="flex items-center gap-2">
-            {/* Nút Mở Video YouTube Tiếng Việt */}
-            <a
-              href={currentRecipe.youtubeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-5 py-2.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-red-500/20 transition-all cursor-pointer"
-            >
-              <Video className="w-3.5 h-3.5" />
-              <span>Mở trên YouTube</span>
-              <ExternalLink className="w-3 h-3 ml-0.5" />
-            </a>
-
-            <button
-              onClick={onClose}
-              className="px-5 py-2.5 rounded-full bg-white border border-rose-200 text-xs font-semibold text-[#4A1D2F] hover:bg-rose-50 transition-colors cursor-pointer"
-            >
-              Đóng
-            </button>
+            {showEmbedVideo && currentRecipe.youtubeId ? (
+              <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-inner border border-rose-100 bg-black">
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${currentRecipe.youtubeId}`}
+                  title={`Video hướng dẫn ${currentRecipe.title}`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div className="p-4 rounded-2xl bg-red-50/60 border border-red-200 text-center space-y-2">
+                <p className="text-xs text-[#6B5B6E]">
+                  Xem video các đầu bếp hướng dẫn từng thao tác chuẩn vị cho món{' '}
+                  <strong>{currentRecipe.title}</strong>
+                </p>
+                <a
+                  href={currentRecipe.youtubeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-red-600 text-white text-xs font-bold shadow-md hover:bg-red-700 transition-colors"
+                >
+                  <Video className="w-3.5 h-3.5" />
+                  <span>Mở YouTube Tìm Video Món Này 📺</span>
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
+  );
+};
+
+export const CookingRecipeModal: React.FC<CookingRecipeModalProps> = ({
+  isOpen,
+  onClose,
+  selectedCountry = 'vietnam',
+  initialRecipeTitle,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <CookingRecipeModalContent
+      key={`${selectedCountry}-${initialRecipeTitle || 'all'}`}
+      onClose={onClose}
+      selectedCountry={selectedCountry}
+      initialRecipeTitle={initialRecipeTitle}
+    />
   );
 };
 

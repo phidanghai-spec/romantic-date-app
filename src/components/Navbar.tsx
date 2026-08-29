@@ -32,6 +32,12 @@ export const Navbar: React.FC = () => {
   const { profile, getDaysTogether } = useCoupleStore();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
+  // Trên trang chủ (/), giữ trải nghiệm video cinematic full-bleed + HeaderBadge + DynamicIsland riêng,
+  // ẩn Navbar để tránh xung đột lặp 2 header và 2 thanh điều hướng ở mobile.
+  if (pathname === '/') {
+    return null;
+  }
+
   const datingDays = isHydrated ? getDaysTogether() : 520;
   const partnerShortName = isHydrated ? profile.partnerName.split(' ')[0] : 'Người thương';
 
@@ -126,7 +132,7 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Bottom Navigation */}
+        {/* Mobile Bottom Navigation (Chỉ xuất hiện ở các trang phụ, không đè DynamicIsland ở trang chủ) */}
         <div className="lg:hidden fixed bottom-4 left-3 right-3 z-50 pointer-events-auto">
           <div className="cream-glass-pill rounded-full px-2 py-2 flex items-center justify-around shadow-2xl border border-rose-200/80 bg-white/95 backdrop-blur-2xl">
             {navItems.map((item) => {
