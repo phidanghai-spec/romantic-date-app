@@ -3,8 +3,6 @@ import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import FloralBackground from "@/components/ui/FloralBackground";
-import { AuthProvider } from "@/context/AuthContext";
-import { CoupleProvider } from "@/context/CoupleContext";
 
 const serifFont = Playfair_Display({
   subsets: ["vietnamese", "latin"],
@@ -32,15 +30,11 @@ export default function RootLayout({
   return (
     <html lang="vi" className={`${serifFont.variable} ${sansFont.variable}`}>
       <body className="bg-[#FAF6EE] text-[#2D1E2F] font-sans relative antialiased min-h-screen selection:bg-rose-200 selection:text-rose-900">
-        <AuthProvider>
-          <CoupleProvider>
-            <FloralBackground />
-            <div className="relative z-10 flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1">{children}</main>
-            </div>
-          </CoupleProvider>
-        </AuthProvider>
+        <FloralBackground />
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-1">{children}</main>
+        </div>
       </body>
     </html>
   );

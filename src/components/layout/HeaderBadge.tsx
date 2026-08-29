@@ -1,22 +1,27 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import { Heart, Settings2 } from 'lucide-react';
-import { useCouple } from '@/context/CoupleContext';
+import { useCoupleStore } from '@/lib/coupleStore';
 import { CoupleProfileModal } from '@/components/modals/CoupleProfileModal';
 
+function useIsHydrated() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+}
+
 export const HeaderBadge: React.FC = () => {
-  const { currentUser, partner, datingDays } = useCouple();
+  const isHydrated = useIsHydrated();
+  const { profile, getDaysTogether } = useCoupleStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const displayDays = mounted ? datingDays : 520;
-  const displayName = mounted
-    ? `${currentUser.fullName.split(' ')[0]} & ${partner.fullName.split(' ')[0]}`
+  const datingDays = getDaysTogether();
+  const displayDays = isHydrated ? datingDays : 520;
+  const displayName = isHydrated
+    ? `${profile.yourName.split(' ')[0]} & ${profile.partnerName.split(' ')[0]}`
     : 'Bạn & Người thương';
 
   return (

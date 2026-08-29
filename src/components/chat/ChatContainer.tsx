@@ -1,39 +1,38 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useSyncExternalStore } from 'react';
 import {
   Send,
-  Heart,
   Calendar,
   Smile,
-  Clock,
-  Utensils,
-  MapPin,
-  Sparkles,
   Trash2,
   CheckCircle2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useChatStore, ChatMessage } from '@/store/chatStore';
 import { useCoupleStore } from '@/lib/coupleStore';
+import { DateInviteCard } from '@/components/chat/DateInviteCard';
 
 const QUICK_STICKERS = ['🥰', '💖', '🍲', '🥩', '🍿', '🌹', '✨', '🥺'];
 
+function useIsHydrated() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+}
+
 export const ChatContainer: React.FC = () => {
-  const { messages, _hasHydrated, sendMessage, receiveMessage, clearChat } = useChatStore();
+  const isHydrated = useIsHydrated();
+  const { messages, sendMessage, receiveMessage, clearChat } = useChatStore();
   const { profile, getDaysTogether } = useCoupleStore();
 
   const [inputContent, setInputContent] = useState('');
   const [showStickers, setShowStickers] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
-
-  // Setup mounted state for SSR safety
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Setup BroadcastChannel for 2-tab realtime sync
   useEffect(() => {
@@ -45,7 +44,7 @@ export const ChatContainer: React.FC = () => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'NEW_CHAT_MESSAGE' && event.data.payload) {
         const rawMsg: ChatMessage = event.data.payload;
-        // Invert sender so Tab B sees this message as coming from the partner
+        // Invert sender so Tab B sees this message as coming from partner
         const incomingMsg: ChatMessage = {
           ...rawMsg,
           sender: 'partner',
@@ -78,7 +77,7 @@ export const ChatContainer: React.FC = () => {
 
     try {
       setIsSending(true);
-      const senderName = profile.yourName || 'Anh iu';
+      const senderName = profile.yourName || 'Người dùng';
       const createdMsg = sendMessage({
         sender: 'me',
         senderName,
@@ -117,7 +116,7 @@ export const ChatContainer: React.FC = () => {
   };
 
   // SSR skeleton protection
-  if (!mounted || !_hasHydrated) {
+  if (!isHydrated) {
     return (
       <div className="w-full max-w-2xl mx-auto cream-glass-card rounded-[2.5rem] border-2 border-rose-300 shadow-2xl p-8 flex flex-col items-center justify-center min-h-[500px] text-center space-y-4">
         <div className="w-12 h-12 border-3 border-rose-400 border-t-transparent rounded-full animate-spin" />
@@ -227,47 +226,11 @@ export const ChatContainer: React.FC = () => {
                 </span>
 
                 {msg.type === 'date_invite' && msg.invitationData ? (
-                  <div className="w-full max-w-sm rounded-3xl p-4 bg-gradient-to-br from-rose-50 to-pink-50 border-2 border-rose-300 shadow-lg space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center">
-                        <Heart className="w-4 h-4 fill-white" />
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-mono uppercase font-bold text-rose-600 tracking-wider">
-                          VIP Date Invitation
-                        </span>
-                        <h4 className="font-serif font-bold text-sm text-[#4A1D2F]">
-                          Buổi Hẹn Hò Ngọt Ngào 💌
-                        </h4>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5 text-xs bg-white/80 p-3 rounded-2xl border border-rose-200/80">
-                      <div className="flex items-center gap-1.5 text-[#2D1E2F]">
-                        <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                        <span>
-                          {msg.invitationData.date} lúc {msg.invitationData.time}
-                        </span>
-                      </div>
-                      {msg.invitationData.cuisine && (
-                        <div className="flex items-center gap-1.5 text-[#2D1E2F]">
-                          <Utensils className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                          <strong className="text-rose-700">{msg.invitationData.cuisine}</strong>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1.5 text-[#2D1E2F]">
-                        <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                        <span>{msg.invitationData.location}</span>
-                      </div>
-                    </div>
-
-                    <Link
-                      href="/date-planner"
-                      className="w-full py-2 rounded-full bg-rose-500 text-white text-xs font-bold text-center block hover:bg-rose-600 transition-colors shadow-xs"
-                    >
-                      Xem chi tiết vé VIP ➔
-                    </Link>
-                  </div>
+                  <DateInviteCard
+                    messageId={msg.id}
+                    invitation={msg.invitationData}
+                    isSender={isMe}
+                  />
                 ) : msg.type === 'sticker' ? (
                   <div
                     className="text-5xl py-1 transform hover:scale-125 transition-transform"

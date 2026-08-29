@@ -181,11 +181,15 @@ export const DateCard: React.FC<DateCardProps> = ({
           text: `Anh vừa gửi vé hẹn hò "${cuisine}" tới email ${partnerEmail} nè! 💌✨`,
           type: 'date_invite',
           invitationData: {
-            date: dateStr,
-            time: timeStr,
+            partnerName: realPartnerName,
+            senderName: realSenderName,
+            dateTime: `${dateStr} vào lúc ${timeStr}`,
+            dateStr,
+            timeStr,
             location,
             cuisine,
-            note: specialNote,
+            specialNote,
+            status: 'pending',
           },
         });
       } else {

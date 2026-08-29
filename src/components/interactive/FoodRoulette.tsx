@@ -8,18 +8,13 @@ import {
   RotateCw,
   CalendarHeart,
   ChefHat,
-  Heart,
-  Utensils,
-  Flame,
-  Check,
-  Plus,
   Settings2,
   BookOpen,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useCoupleStore } from '@/lib/coupleStore';
 import { CUISINES_DATA, CountryId, RouletteFood } from '@/data/cuisines';
-import { CoupleSettingsModal } from '@/components/profile/CoupleSettingsModal';
+import { CoupleProfileModal } from '@/components/modals/CoupleProfileModal';
 import { CookingRecipeModal } from '@/components/food/CookingRecipeModal';
 
 interface FoodRouletteProps {
@@ -250,7 +245,7 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
         </button>
       </div>
 
-      {/* ── Winner Result Display Card (With 2-Way Interactive Recipe Shortcut) ── */}
+      {/* ── Winner Result Display Card ── */}
       {selectedFood && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 15 }}
@@ -282,7 +277,6 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
               <span>Chốt Món &amp; Lên Lịch Hẹn Ngay 💌</span>
             </Link>
 
-            {/* Shortcut Xem Công Thức Món Này */}
             <button
               type="button"
               onClick={() => handleOpenSpecificRecipe(selectedFood.name)}
@@ -296,7 +290,7 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
       )}
 
       {/* Couple Profile Settings Modal */}
-      <CoupleSettingsModal
+      <CoupleProfileModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
       />
@@ -311,3 +305,5 @@ export const FoodRoulette: React.FC<FoodRouletteProps> = ({
     </div>
   );
 };
+
+export default FoodRoulette;

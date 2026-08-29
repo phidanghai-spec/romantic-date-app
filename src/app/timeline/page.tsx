@@ -7,20 +7,20 @@ import {
   MapPin, 
   CheckCircle2, 
   Circle, 
-  Image as ImageIcon,
-  BookHeart,
-  Heart,
-  Upload,
-  Star,
-  X,
-  Calendar,
-  Utensils,
-  Camera,
-  Loader2
+  Image as ImageIcon, 
+  BookHeart, 
+  Upload, 
+  Star, 
+  X, 
+  Calendar, 
+  Utensils, 
+  Loader2,
+  Trash2,
 } from 'lucide-react';
-import { DEFAULT_MEMORIES, DEFAULT_BUCKET_LIST, CoupleMemory, BucketListItem } from '@/lib/dateApis';
+import { CoupleMemory } from '@/lib/dateApis';
 import { uploadMemoryPhoto } from '@/lib/storage';
 import { useCoupleStore } from '@/lib/coupleStore';
+import { useTimelineStore } from '@/lib/timelineStore';
 
 const RATING_LABELS: Record<number, string> = {
   1: 'Chưa như mong đợi 🥺',
@@ -32,15 +32,23 @@ const RATING_LABELS: Record<number, string> = {
 
 export default function TimelinePage() {
   const { profile, getDaysTogether } = useCoupleStore();
-  const [memories, setMemories] = useState<CoupleMemory[]>(DEFAULT_MEMORIES);
-  const [bucketList, setBucketList] = useState<BucketListItem[]>(DEFAULT_BUCKET_LIST);
+  const { 
+    memories, 
+    bucketList, 
+    addMemory, 
+    deleteMemory, 
+    toggleBucketItem, 
+    addBucketItem, 
+    deleteBucketItem 
+  } = useTimelineStore();
+
   const [activeTab, setActiveTab] = useState<'memories' | 'bucketList'>('memories');
 
   // New Memory Modal Form states
   const [isAddMemoryOpen, setIsAddMemoryOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [newTitle, setNewTitle] = useState('');
-  const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0]);
+  const [newDate, setNewDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [newLocation, setNewLocation] = useState('');
   const [newNote, setNewNote] = useState('');
   const [newCuisine, setNewCuisine] = useState('Lẩu Haidilao');
@@ -53,20 +61,6 @@ export default function TimelinePage() {
   // New Bucket List Item state
   const [newBucketTitle, setNewBucketTitle] = useState('');
   const [newBucketCategory, setNewBucketCategory] = useState('Kỷ Niệm');
-
-  const toggleBucketItem = (id: string) => {
-    setBucketList((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              isCompleted: !item.isCompleted,
-              completedAt: !item.isCompleted ? new Date().toISOString().split('T')[0] : undefined,
-            }
-          : item
-      )
-    );
-  };
 
   // Handle direct file upload with HTML5 Canvas compression
   const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,14 +88,14 @@ export default function TimelinePage() {
       id: `mem-${Date.now()}`,
       title: newTitle.trim(),
       date: newDate,
-      location: newLocation || 'TP. Hồ Chí Minh',
-      note: newNote || 'Một buổi hẹn hò thật ấm áp và đáng nhớ ❤️',
+      location: newLocation.trim() || 'TP. Hồ Chí Minh',
+      note: newNote.trim() || 'Một buổi hẹn hò thật ấm áp và đáng nhớ ❤️',
       photoUrl: newPhotoUrl.trim() || fallbackPhoto,
       cuisine: newCuisine,
       rating: newRating,
     };
 
-    setMemories([newMem, ...memories]);
+    addMemory(newMem);
     setIsAddMemoryOpen(false);
     setNewTitle('');
     setNewNote('');
@@ -114,19 +108,12 @@ export default function TimelinePage() {
     e.preventDefault();
     if (!newBucketTitle.trim()) return;
 
-    const newItem: BucketListItem = {
-      id: `b-${Date.now()}`,
-      title: newBucketTitle.trim(),
-      category: newBucketCategory,
-      isCompleted: false,
-    };
-
-    setBucketList([...bucketList, newItem]);
+    addBucketItem(newBucketTitle.trim(), newBucketCategory);
     setNewBucketTitle('');
   };
 
   const completedCount = bucketList.filter((b) => b.isCompleted).length;
-  const progressPercent = Math.round((completedCount / bucketList.length) * 100) || 0;
+  const progressPercent = bucketList.length > 0 ? Math.round((completedCount / bucketList.length) * 100) : 0;
   const daysInLove = getDaysTogether();
 
   return (
@@ -143,7 +130,7 @@ export default function TimelinePage() {
               <span>Our Love Story Milestone</span>
             </div>
 
-            <h1 className="font-serif-italic text-5xl sm:text-6xl md:text-7xl text-[#2D1E2F] font-bold tracking-tight leading-none">
+            <h1 className="font-serif italic text-5xl sm:text-6xl md:text-7xl text-[#2D1E2F] font-bold tracking-tight leading-none">
               {daysInLove} Ngày Bên Nhau 💕
             </h1>
 
@@ -155,15 +142,15 @@ export default function TimelinePage() {
           {/* Quick Metrics Bar */}
           <div className="grid grid-cols-3 gap-3 max-w-md mx-auto pt-6 text-center relative z-10">
             <div className="p-3 rounded-2xl bg-white/90 border border-rose-200/60 shadow-xs">
-              <div className="font-serif-italic text-3xl text-rose-600 font-bold">{memories.length}</div>
+              <div className="font-serif italic text-3xl text-rose-600 font-bold">{memories.length}</div>
               <div className="text-[10px] text-[#886A8B] uppercase font-mono font-semibold">Buổi hẹn đã lưu</div>
             </div>
             <div className="p-3 rounded-2xl bg-white/90 border border-rose-200/60 shadow-xs">
-              <div className="font-serif-italic text-3xl text-amber-600 font-bold">{completedCount}/{bucketList.length}</div>
+              <div className="font-serif italic text-3xl text-amber-600 font-bold">{completedCount}/{bucketList.length}</div>
               <div className="text-[10px] text-[#886A8B] uppercase font-mono font-semibold">Wishlist hoàn thành</div>
             </div>
             <div className="p-3 rounded-2xl bg-white/90 border border-rose-200/60 shadow-xs">
-              <div className="font-serif-italic text-3xl text-pink-600 font-bold">100%</div>
+              <div className="font-serif italic text-3xl text-pink-600 font-bold">100%</div>
               <div className="text-[10px] text-[#886A8B] uppercase font-mono font-semibold">Đồng điệu khẩu vị</div>
             </div>
           </div>
@@ -201,7 +188,7 @@ export default function TimelinePage() {
           <section className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-serif-italic text-3xl text-[#2D1E2F] font-bold">Cuốn Sổ Kỷ Niệm (Scrapbook) 📸</h3>
+                <h3 className="font-serif italic text-3xl text-[#2D1E2F] font-bold">Cuốn Sổ Kỷ Niệm (Scrapbook) 📸</h3>
                 <p className="text-xs text-[#715A75] font-light">Những khoảnh khắc hẹn hò ngọt ngào nhất của hai đứa</p>
               </div>
 
@@ -214,62 +201,80 @@ export default function TimelinePage() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {memories.map((mem) => (
-                <div
-                  key={mem.id}
-                  className="cream-glass-card rounded-3xl overflow-hidden border border-rose-200/70 hover:border-rose-300 transition-all duration-300 flex flex-col justify-between group shadow-md hover:shadow-xl"
-                >
-                  <div className="relative w-full h-56 overflow-hidden bg-rose-50">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={mem.photoUrl}
-                      alt={mem.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/90 text-[10px] font-mono text-rose-800 border border-rose-200 font-bold shadow-2xs">
-                      {mem.date}
-                    </span>
-                  </div>
-
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-serif-italic text-2xl text-[#2D1E2F] font-bold group-hover:text-rose-600 transition-colors">
-                          {mem.title}
-                        </h4>
-                        <div className="flex items-center gap-0.5 text-amber-500 text-sm">
-                          {Array.from({ length: 5 }).map((_, idx) => (
-                            <Star
-                              key={idx}
-                              className={`w-3.5 h-3.5 ${
-                                idx < mem.rating
-                                   ? 'fill-amber-400 text-amber-500'
-                                  : 'fill-rose-100 text-rose-200'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-xs text-[#5E4761] font-light mt-1.5 leading-relaxed italic">
-                        &ldquo;{mem.note}&rdquo;
-                      </p>
-                    </div>
-
-                    <div className="pt-2 border-t border-rose-100 flex items-center justify-between text-xs text-[#715A75] font-light">
-                      <div className="flex items-center gap-1 text-rose-700 font-medium">
-                        <MapPin className="w-3.5 h-3.5 text-rose-500" />
-                        <span className="truncate">{mem.location}</span>
-                      </div>
-                      <span className="font-mono text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
-                        {mem.cuisine}
+            {memories.length === 0 ? (
+              <div className="cream-glass-card rounded-3xl p-12 text-center border border-rose-200/70 space-y-3">
+                <div className="text-4xl">🌸</div>
+                <h4 className="font-serif italic text-2xl text-[#2D1E2F] font-bold">Chưa có kỷ niệm nào được lưu</h4>
+                <p className="text-xs text-[#715A75] max-w-sm mx-auto">
+                  Hãy nhấn nút &ldquo;Thêm kỷ niệm mới&rdquo; để bắt đầu lưu giữ những bức ảnh và khoảnh khắc đẹp của hai bạn!
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {memories.map((mem) => (
+                  <div
+                    key={mem.id}
+                    className="cream-glass-card rounded-3xl overflow-hidden border border-rose-200/70 hover:border-rose-300 transition-all duration-300 flex flex-col justify-between group shadow-md hover:shadow-xl relative"
+                  >
+                    <div className="relative w-full h-56 overflow-hidden bg-rose-50">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={mem.photoUrl}
+                        alt={mem.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/90 text-[10px] font-mono text-rose-800 border border-rose-200 font-bold shadow-2xs">
+                        {mem.date}
                       </span>
+                      <button
+                        type="button"
+                        onClick={() => deleteMemory(mem.id)}
+                        className="absolute top-3 right-3 p-1.5 rounded-full bg-black/40 text-white/80 hover:text-red-400 hover:bg-black/70 transition-colors"
+                        title="Xóa kỷ niệm này"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-serif italic text-2xl text-[#2D1E2F] font-bold group-hover:text-rose-600 transition-colors">
+                            {mem.title}
+                          </h4>
+                          <div className="flex items-center gap-0.5 text-amber-500 text-sm">
+                            {Array.from({ length: 5 }).map((_, idx) => (
+                              <Star
+                                key={idx}
+                                className={`w-3.5 h-3.5 ${
+                                  idx < mem.rating
+                                    ? 'fill-amber-400 text-amber-500'
+                                    : 'fill-rose-100 text-rose-200'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-xs text-[#5E4761] font-light mt-1.5 leading-relaxed italic">
+                          &ldquo;{mem.note}&rdquo;
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-rose-100 flex items-center justify-between text-xs text-[#715A75] font-light">
+                        <div className="flex items-center gap-1 text-rose-700 font-medium">
+                          <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                          <span className="truncate">{mem.location}</span>
+                        </div>
+                        <span className="font-mono text-amber-800 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                          {mem.cuisine}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
@@ -279,11 +284,11 @@ export default function TimelinePage() {
             <div className="cream-glass-card rounded-3xl p-6 border border-rose-200/80 space-y-4 shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-serif-italic text-3xl text-[#2D1E2F] font-bold">Những Điều Muốn Làm Cùng Nhau ✨</h3>
+                  <h3 className="font-serif italic text-3xl text-[#2D1E2F] font-bold">Những Điều Muốn Làm Cùng Nhau ✨</h3>
                   <p className="text-xs text-[#715A75] font-light">Danh sách ước mơ và địa điểm cần chinh phục</p>
                 </div>
                 <div className="text-right">
-                  <span className="font-serif-italic text-3xl text-rose-600 font-bold">{progressPercent}%</span>
+                  <span className="font-serif italic text-3xl text-rose-600 font-bold">{progressPercent}%</span>
                   <span className="text-[10px] text-[#886A8B] block font-mono font-semibold">Đã hoàn thành</span>
                 </div>
               </div>
@@ -301,269 +306,253 @@ export default function TimelinePage() {
                 {bucketList.map((item) => (
                   <div
                     key={item.id}
-                    onClick={() => toggleBucketItem(item.id)}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between select-none ${
+                    className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                       item.isCompleted
-                        ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
-                        : 'bg-white hover:bg-rose-50/50 border-rose-200/70 text-[#2D1E2F]'
+                        ? 'bg-rose-50/70 border-rose-300 text-rose-900 opacity-90'
+                        : 'bg-white border-rose-200 text-[#2D1E2F] hover:border-rose-300'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleBucketItem(item.id)}
+                      className="flex items-center gap-3 text-left flex-1 cursor-pointer"
+                    >
                       {item.isCompleted ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                        <CheckCircle2 className="w-5 h-5 text-rose-500 fill-rose-100 shrink-0" />
                       ) : (
-                        <Circle className="w-5 h-5 text-rose-300 shrink-0" />
+                        <Circle className="w-5 h-5 text-rose-300 shrink-0 hover:text-rose-500 transition-colors" />
                       )}
-                      <span className={`text-xs sm:text-sm ${item.isCompleted ? 'line-through opacity-70 text-[#715A75]' : 'font-semibold'}`}>
-                        {item.title}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full bg-rose-100/80 text-[10px] font-mono text-rose-800 font-bold border border-rose-200">
-                        {item.category}
-                      </span>
-                      {item.completedAt && (
-                        <span className="text-[10px] font-mono text-emerald-700 font-semibold">
-                          {item.completedAt}
+                      <div>
+                        <span className={`text-xs sm:text-sm font-medium block ${item.isCompleted ? 'line-through text-rose-700' : ''}`}>
+                          {item.title}
                         </span>
-                      )}
-                    </div>
+                        <span className="text-[10px] text-[#886A8B] font-mono">
+                          Chủ đề: {item.category} {item.completedAt && `• Hoàn thành: ${item.completedAt}`}
+                        </span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => deleteBucketItem(item.id)}
+                      className="p-1.5 rounded-full text-[#886A8B] hover:text-red-500 hover:bg-rose-50 transition-colors"
+                      title="Xóa mục này"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
               </div>
 
               {/* Add Bucket Item Form */}
-              <form onSubmit={handleAddBucketItem} className="pt-4 border-t border-rose-200 flex gap-2">
+              <form onSubmit={handleAddBucketItem} className="pt-4 flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={newBucketTitle}
                   onChange={(e) => setNewBucketTitle(e.target.value)}
-                  placeholder="Thêm mục ước mơ mới (VD: Cùng đi ngắm tuyết Sapa)..."
-                  className="flex-1 px-4 py-2.5 rounded-full bg-white border border-rose-200 text-xs sm:text-sm text-[#2D1E2F] focus:outline-rose-400 placeholder:text-[#A08DA3] shadow-inner"
+                  placeholder="Thêm một ước mơ mới (VD: Đi ngắm tuyết ở Sapa, cùng làm bánh kem...)"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-rose-50/40 border border-rose-200 text-xs sm:text-sm text-[#2D1E2F] focus:outline-rose-400 placeholder:text-[#A08DA3]"
                 />
+                <select
+                  value={newBucketCategory}
+                  onChange={(e) => setNewBucketCategory(e.target.value)}
+                  className="px-3 py-2.5 rounded-xl bg-rose-50/40 border border-rose-200 text-xs text-[#2D1E2F] focus:outline-rose-400 font-medium"
+                >
+                  <option value="Kỷ Niệm">Kỷ Niệm 📸</option>
+                  <option value="Ăn Uống">Ăn Uống 🍲</option>
+                  <option value="Du Lịch">Du Lịch ✈️</option>
+                  <option value="Trải Nghiệm">Trải Nghiệm 🎨</option>
+                </select>
                 <button
                   type="submit"
                   disabled={!newBucketTitle.trim()}
-                  className="py-2.5 px-6 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold text-xs shadow-md disabled:opacity-40 border border-white/40 cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-rose-500 text-white font-bold text-xs shadow-md hover:bg-rose-600 disabled:opacity-40 transition-all flex items-center justify-center gap-1 cursor-pointer"
                 >
-                  Thêm
+                  <Plus className="w-4 h-4" />
+                  <span>Thêm</span>
                 </button>
               </form>
             </div>
           </section>
         )}
-      </main>
 
-      {/* Add Memory Modal with Direct File Upload & Interactive 5-Star Rating */}
-      {isAddMemoryOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-fade-in overflow-y-auto">
-          <form
-            onSubmit={handleAddMemory}
-            className="w-full max-w-lg bg-[#FFFDF9] rounded-3xl p-6 sm:p-7 border-2 border-rose-300 text-[#2D1E2F] space-y-4 shadow-2xl my-6 max-h-[90vh] overflow-y-auto custom-scrollbar"
-          >
-            <div className="flex items-center justify-between border-b border-rose-200 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
-                  <Camera className="w-4 h-4" />
+        {/* MODAL: THÊM KỶ NIỆM MỚI */}
+        {isAddMemoryOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+            <div className="relative w-full max-w-lg cream-glass-card bg-white rounded-3xl p-6 sm:p-8 border-2 border-rose-300 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+              <div className="flex items-center justify-between border-b border-rose-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <h3 className="font-serif italic text-2xl text-[#2D1E2F] font-bold">Lưu Giữ Khoảnh Khắc Mới</h3>
                 </div>
-                <h3 className="font-serif-italic text-2xl text-[#2D1E2F] font-bold">Thêm Kỷ Niệm Buổi Hẹn 💖</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsAddMemoryOpen(false)}
-                className="p-1 rounded-full hover:bg-rose-100 text-[#715A75] hover:text-[#2D1E2F] cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-3.5 text-xs">
-              {/* Photo Upload Area */}
-              <div>
-                <label className="text-[#5E4761] block mb-1.5 font-bold flex items-center gap-1.5">
-                  <Camera className="w-3.5 h-3.5 text-rose-500" />
-                  Ảnh chụp kỷ niệm buổi hẹn (Tự động nén tối ưu)
-                </label>
-
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  onChange={handleImageFileChange}
-                  className="hidden"
-                />
-
-                {isUploading ? (
-                  <div className="w-full h-36 rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/50 flex flex-col items-center justify-center gap-2">
-                    <Loader2 className="w-6 h-6 text-rose-500 animate-spin" />
-                    <span className="text-xs font-semibold text-rose-700">Đang nén và xử lý ảnh...</span>
-                  </div>
-                ) : newPhotoUrl ? (
-                  <div className="relative w-full h-44 rounded-2xl overflow-hidden border-2 border-rose-300 shadow-sm group">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={newPhotoUrl}
-                      alt="Ảnh xem trước"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-3 py-1.5 rounded-full bg-white text-rose-700 font-bold text-xs shadow-md"
-                      >
-                        Đổi ảnh khác 📷
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setNewPhotoUrl('')}
-                        className="px-3 py-1.5 rounded-full bg-rose-500 text-white font-bold text-xs shadow-md"
-                      >
-                        Xóa ảnh ✕
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full h-36 rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/50 hover:bg-rose-100/60 transition-all flex flex-col items-center justify-center gap-2 cursor-pointer p-4 text-center"
-                  >
-                    <div className="w-10 h-10 rounded-full bg-white text-rose-500 flex items-center justify-center shadow-xs">
-                      <Upload className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <span className="font-bold text-rose-700 block">Bấm để tải ảnh từ máy / điện thoại</span>
-                      <span className="text-[10px] text-[#886A8B] font-light">Hỗ trợ JPG, PNG, WEBP (Tự động nén &amp; xem trước)</span>
-                    </div>
-                  </div>
-                )}
+                <button
+                  onClick={() => setIsAddMemoryOpen(false)}
+                  className="p-1.5 rounded-full hover:bg-rose-50 text-[#886A8B] hover:text-[#2D1E2F] transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              {/* Title Input */}
-              <div>
-                <label className="text-[#5E4761] block mb-1 font-bold">Tên buổi hẹn / Tiêu đề kỷ niệm</label>
-                <input
-                  type="text"
-                  required
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="VD: Buổi tối lẩu cay Landmark 81..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-rose-200 text-[#2D1E2F] focus:outline-rose-400 shadow-inner font-medium"
-                />
-              </div>
-
-              {/* Date & Location Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[#5E4761] block mb-1 font-bold flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-rose-500" /> Ngày hẹn
-                  </label>
+              <form onSubmit={handleAddMemory} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-[#5E4761]">Tiêu đề kỷ niệm *</label>
                   <input
-                    type="date"
-                    value={newDate}
-                    onChange={(e) => setNewDate(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-white border border-rose-200 text-[#2D1E2F] focus:outline-rose-400 font-medium"
+                    type="text"
+                    required
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="VD: Buổi tối ngắm hoàng hôn Thảo Điền"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-rose-50/40 border border-rose-200 text-xs sm:text-sm text-[#2D1E2F] focus:outline-rose-400 shadow-inner"
                   />
                 </div>
-                <div>
-                  <label className="text-[#5E4761] block mb-1 font-bold flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-rose-500" /> Địa điểm
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-[#5E4761] flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-rose-500" /> Ngày hẹn
+                    </label>
+                    <input
+                      type="date"
+                      value={newDate}
+                      onChange={(e) => setNewDate(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-rose-50/40 border border-rose-200 text-xs text-[#2D1E2F] focus:outline-rose-400"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-[#5E4761] flex items-center gap-1">
+                      <Utensils className="w-3.5 h-3.5 text-amber-500" /> Món ăn
+                    </label>
+                    <input
+                      type="text"
+                      value={newCuisine}
+                      onChange={(e) => setNewCuisine(e.target.value)}
+                      placeholder="VD: Haidilao, Sushi, Cafe..."
+                      className="w-full px-3 py-2 rounded-xl bg-rose-50/40 border border-rose-200 text-xs text-[#2D1E2F] focus:outline-rose-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-[#5E4761] flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-blue-500" /> Địa điểm
                   </label>
                   <input
                     type="text"
                     value={newLocation}
                     onChange={(e) => setNewLocation(e.target.value)}
-                    placeholder="VD: Quận 1, Landmark 81..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-white border border-rose-200 text-[#2D1E2F] focus:outline-rose-400 font-medium"
+                    placeholder="VD: Haidilao Landmark 81, Quận 1..."
+                    className="w-full px-3.5 py-2 rounded-xl bg-rose-50/40 border border-rose-200 text-xs text-[#2D1E2F] focus:outline-rose-400 shadow-inner"
                   />
                 </div>
-              </div>
 
-              {/* Cuisine Input */}
-              <div>
-                <label className="text-[#5E4761] block mb-1 font-bold flex items-center gap-1">
-                  <Utensils className="w-3.5 h-3.5 text-rose-500" /> Món ăn / Nhà hàng đã trải nghiệm
-                </label>
-                <input
-                  type="text"
-                  value={newCuisine}
-                  onChange={(e) => setNewCuisine(e.target.value)}
-                  placeholder="VD: Lẩu Haidilao, BBQ Hàn Quốc..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-rose-200 text-[#2D1E2F] focus:outline-rose-400 font-medium"
-                />
-              </div>
+                {/* Direct Image Upload */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-[#5E4761] flex items-center justify-between">
+                    <span>Ảnh kỷ niệm (Tự động nén Canvas HD)</span>
+                    <span className="text-[10px] text-rose-600 font-mono">Tối ưu ~150KB</span>
+                  </label>
 
-              {/* Interactive 5-Star Rating */}
-              <div className="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/80 space-y-1.5">
-                <label className="text-[#5E4761] block font-bold flex items-center justify-between">
-                  <span className="flex items-center gap-1">
-                    <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" /> Đánh giá độ hạnh phúc cho buổi hẹn:
-                  </span>
-                  <span className="text-amber-800 font-bold">{newRating} / 5 ⭐</span>
-                </label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageFileChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="px-4 py-2 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {isUploading ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      <span>{isUploading ? 'Đang nén ảnh...' : 'Tải ảnh từ máy'}</span>
+                    </button>
 
-                {/* Stars Row */}
-                <div className="flex items-center gap-2 pt-1">
-                  {[1, 2, 3, 4, 5].map((starIndex) => {
-                    const isFilled = (hoverRating || newRating) >= starIndex;
-                    return (
-                      <button
-                        key={starIndex}
-                        type="button"
-                        onClick={() => setNewRating(starIndex)}
-                        onMouseEnter={() => setHoverRating(starIndex)}
-                        onMouseLeave={() => setHoverRating(0)}
-                        className="p-1 hover:scale-125 active:scale-95 transition-transform cursor-pointer"
-                      >
-                        <Star
-                          className={`w-7 h-7 transition-colors ${
-                            isFilled
-                              ? 'fill-amber-400 text-amber-500 drop-shadow-xs'
-                              : 'fill-rose-100 text-rose-300'
-                          }`}
-                        />
-                      </button>
-                    );
-                  })}
+                    <span className="text-xs text-[#886A8B] truncate flex-1">
+                      {newPhotoUrl ? '✓ Đã sẵn sàng ảnh' : 'Chưa chọn tệp'}
+                    </span>
+                  </div>
+
+                  {newPhotoUrl && (
+                    <div className="relative w-full h-32 rounded-xl overflow-hidden border border-rose-200 mt-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={newPhotoUrl} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                 </div>
 
-                <div className="text-[11px] text-rose-700 font-semibold italic pt-0.5">
-                  {RATING_LABELS[hoverRating || newRating]}
+                {/* Happiness Rating */}
+                <div className="space-y-1.5 p-3 rounded-2xl bg-rose-50/50 border border-rose-100">
+                  <label className="text-xs font-semibold text-[#5E4761] block">
+                    Đánh giá mức độ hạnh phúc:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setNewRating(star)}
+                          onMouseEnter={() => setHoverRating(star)}
+                          onMouseLeave={() => setHoverRating(0)}
+                          className="p-1 text-2xl transition-transform hover:scale-125 focus:outline-hidden cursor-pointer"
+                        >
+                          <Star
+                            className={`w-6 h-6 ${
+                              star <= (hoverRating || newRating)
+                                ? 'fill-amber-400 text-amber-500'
+                                : 'text-slate-300'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <span className="text-xs font-medium text-rose-700 italic">
+                      {RATING_LABELS[hoverRating || newRating]}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Note / Feelings */}
-              <div>
-                <label className="text-[#5E4761] block mb-1 font-bold">Cảm nghĩ / Lời nhắn ngọt ngào</label>
-                <textarea
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  rows={2}
-                  placeholder="Hôm nay em vui lắm, đồ ăn rất ngon và anh chở em đi dạo..."
-                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-rose-200 text-[#2D1E2F] focus:outline-rose-400 font-medium"
-                />
-              </div>
-            </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-[#5E4761]">Cảm xúc / Lời nhắn nhủ</label>
+                  <textarea
+                    rows={2}
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    placeholder="Viết vài dòng yêu thương về buổi hẹn hôm ấy..."
+                    className="w-full px-3.5 py-2 rounded-xl bg-rose-50/40 border border-rose-200 text-xs text-[#2D1E2F] focus:outline-rose-400 shadow-inner"
+                  />
+                </div>
 
-            <div className="pt-3 border-t border-rose-200 flex justify-end gap-2.5">
-              <button
-                type="button"
-                onClick={() => setIsAddMemoryOpen(false)}
-                className="px-4 py-2.5 text-xs text-[#715A75] hover:text-[#2D1E2F] cursor-pointer font-semibold"
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                className="py-2.5 px-6 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold text-xs shadow-md shadow-rose-500/25 hover:opacity-95 active:scale-95 border border-white/40 cursor-pointer"
-              >
-                Lưu Kỷ Niệm Vào Sổ 💖
-              </button>
+                <div className="pt-2 flex items-center justify-end gap-2 border-t border-rose-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddMemoryOpen(false)}
+                    className="px-4 py-2 rounded-full text-xs text-[#715A75] hover:bg-rose-50 transition-colors cursor-pointer"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-full bg-gradient-to-r from-rose-500 to-pink-600 text-white font-bold text-xs shadow-md shadow-rose-500/25 hover:opacity-95 active:scale-95 transition-all cursor-pointer"
+                  >
+                    Lưu Kỷ Niệm 💖
+                  </button>
+                </div>
+              </form>
             </div>
-          </form>
-        </div>
-      )}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

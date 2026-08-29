@@ -18,7 +18,7 @@ import {
   User,
   ShieldCheck,
 } from 'lucide-react';
-import { useCouple, calculateDatingDays } from '@/context/CoupleContext';
+import { useCoupleStore, calculateDatingDays } from '@/lib/coupleStore';
 import { CountryCuisine, FoodItem } from '@/types/couple';
 
 const ALLERGIES_LIST = [
@@ -56,26 +56,24 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
   onClose,
 }) => {
   const {
-    currentUser,
-    partner,
-    couple,
-    updateCurrentUser,
-    updatePartner,
-    updateCouple,
+    profile,
+    updateProfile,
     updateTastePreferences,
-  } = useCouple();
+    addCustomFoodItem,
+    removeCustomFoodItem,
+  } = useCoupleStore();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'taste' | 'custom_food'>('profile');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Form local state synced with SSOT
-  const [yourName, setYourName] = useState(currentUser.fullName);
-  const [partnerName, setPartnerName] = useState(partner.fullName);
-  const [anniversaryDate, setAnniversaryDate] = useState(couple.anniversaryDate);
-  const [nextDateDate, setNextDateDate] = useState(couple.nextDate);
-  const [nextDateTime, setNextDateTime] = useState(couple.nextDateTime);
-  const [nextDateLocation, setNextDateLocation] = useState(couple.favoriteLocation);
-  const [bio, setBio] = useState(couple.bio || '');
+  const [yourName, setYourName] = useState(profile.yourName);
+  const [partnerName, setPartnerName] = useState(profile.partnerName);
+  const [anniversaryDate, setAnniversaryDate] = useState(profile.anniversaryDate);
+  const [nextDateDate, setNextDateDate] = useState(profile.nextDateDate);
+  const [nextDateTime, setNextDateTime] = useState(profile.nextDateTime);
+  const [nextDateLocation, setNextDateLocation] = useState(profile.nextDateLocation);
+  const [bio, setBio] = useState(profile.bio || '');
 
   // Custom food form
   const [customName, setCustomName] = useState('');
@@ -84,33 +82,33 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
   const [customTag, setCustomTag] = useState('');
   const [customDesc, setCustomDesc] = useState('');
 
-  // Sync state whenever modal opens or couple context updates
+  // Sync state whenever modal opens
   useEffect(() => {
     if (isOpen) {
-      setYourName(currentUser.fullName);
-      setPartnerName(partner.fullName);
-      setAnniversaryDate(couple.anniversaryDate);
-      setNextDateDate(couple.nextDate);
-      setNextDateTime(couple.nextDateTime);
-      setNextDateLocation(couple.favoriteLocation);
-      setBio(couple.bio || '');
+      setYourName(profile.yourName);
+      setPartnerName(profile.partnerName);
+      setAnniversaryDate(profile.anniversaryDate);
+      setNextDateDate(profile.nextDateDate);
+      setNextDateTime(profile.nextDateTime);
+      setNextDateLocation(profile.nextDateLocation);
+      setBio(profile.bio || '');
     }
-  }, [isOpen, currentUser.fullName, partner.fullName, couple]);
+  }, [isOpen, profile]);
 
   if (!isOpen) return null;
 
   // Realtime calculated preview days
   const dynamicPreviewDays = calculateDatingDays(anniversaryDate);
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    updateCurrentUser({ fullName: yourName.trim() || currentUser.fullName });
-    updatePartner({ fullName: partnerName.trim() || partner.fullName });
-    await updateCouple({
+    updateProfile({
+      yourName: yourName.trim() || profile.yourName,
+      partnerName: partnerName.trim() || profile.partnerName,
       anniversaryDate,
-      nextDate: nextDateDate,
+      nextDateDate,
       nextDateTime,
-      favoriteLocation: nextDateLocation,
+      nextDateLocation,
       bio,
     });
 
@@ -135,23 +133,15 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
       isCustom: true,
     };
 
-    const currentItems = couple.tastePreferences.customFoodItems || [];
-    updateTastePreferences({
-      customFoodItems: [newItem, ...currentItems],
-    });
+    addCustomFoodItem(newItem);
 
     setCustomName('');
     setCustomTag('');
     setCustomDesc('');
   };
 
-  const handleRemoveCustomFood = (id: string) => {
-    const filtered = (couple.tastePreferences.customFoodItems || []).filter((f) => f.id !== id);
-    updateTastePreferences({ customFoodItems: filtered });
-  };
-
   const toggleAllergy = (item: string) => {
-    const current = couple.tastePreferences.allergies || [];
+    const current = profile.tastePreferences.allergies || [];
     const updated = current.includes(item)
       ? current.filter((a) => a !== item)
       : [...current, item];
@@ -159,7 +149,7 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
   };
 
   const toggleHobby = (hobby: string) => {
-    const current = couple.tastePreferences.entertainmentHobbies || [];
+    const current = profile.tastePreferences.entertainmentHobbies || [];
     const updated = current.includes(hobby)
       ? current.filter((h) => h !== hobby)
       : [...current, hobby];
@@ -179,7 +169,7 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
               <Heart className="w-5 h-5 fill-white animate-pulse" />
             </div>
             <div>
-              <h3 className="font-serif-italic text-xl sm:text-2xl font-bold text-[#2D1E2F]">
+              <h3 className="font-serif italic text-xl sm:text-2xl font-bold text-[#2D1E2F]">
                 Hồ Sơ &amp; Ngày Kỷ Niệm Cặp Đôi 🌸
               </h3>
               <span className="text-[11px] text-[#715A75] font-light">
@@ -235,7 +225,7 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
             }`}
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Món Tự Thêm ({couple.tastePreferences.customFoodItems?.length || 0})</span>
+            <span>Món Tự Thêm ({profile.tastePreferences.customFoodItems?.length || 0})</span>
           </button>
         </div>
 
@@ -375,14 +365,14 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
                     <Flame className="w-4 h-4 text-orange-500" /> Mức độ ăn cay:
                   </span>
                   <span className="font-bold text-rose-600 font-mono">
-                    Cấp {couple.tastePreferences.spiciness} / 5 🌶️
+                    Cấp {profile.tastePreferences.spiciness} / 5 🌶️
                   </span>
                 </div>
                 <input
                   type="range"
                   min="0"
                   max="5"
-                  value={couple.tastePreferences.spiciness}
+                  value={profile.tastePreferences.spiciness}
                   onChange={(e) => updateTastePreferences({ spiciness: Number(e.target.value) })}
                   className="w-full accent-rose-500 cursor-pointer"
                 />
@@ -400,7 +390,7 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {ALLERGIES_LIST.map((item) => {
-                    const isSelected = couple.tastePreferences.allergies?.includes(item);
+                    const isSelected = profile.tastePreferences.allergies?.includes(item);
                     return (
                       <button
                         key={item}
@@ -426,7 +416,7 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {HOBBIES_LIST.map((hobby) => {
-                    const isSelected = couple.tastePreferences.entertainmentHobbies?.includes(hobby);
+                    const isSelected = profile.tastePreferences.entertainmentHobbies?.includes(hobby);
                     return (
                       <button
                         key={hobby}
@@ -511,16 +501,16 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
               {/* List of Custom Foods */}
               <div className="space-y-2">
                 <span className="text-[11px] font-mono text-[#886A8B] uppercase tracking-wider block font-bold">
-                  Danh sách món ăn tự tạo ({couple.tastePreferences.customFoodItems?.length || 0}):
+                  Danh sách món ăn tự tạo ({profile.tastePreferences.customFoodItems?.length || 0}):
                 </span>
 
-                {(!couple.tastePreferences.customFoodItems || couple.tastePreferences.customFoodItems.length === 0) ? (
+                {(!profile.tastePreferences.customFoodItems || profile.tastePreferences.customFoodItems.length === 0) ? (
                   <p className="text-xs text-[#886A8B] italic py-2">
                     Chưa có món ăn tự thêm nào. Hãy thêm những quán quen của hai bạn vào nhé!
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    {couple.tastePreferences.customFoodItems.map((item) => (
+                    {profile.tastePreferences.customFoodItems.map((item) => (
                       <div
                         key={item.id}
                         className="p-3 rounded-2xl bg-white border border-rose-200/80 flex items-center justify-between shadow-2xs"
@@ -535,7 +525,7 @@ export const CoupleProfileModal: React.FC<CoupleProfileModalProps> = ({
 
                         <button
                           type="button"
-                          onClick={() => handleRemoveCustomFood(item.id)}
+                          onClick={() => removeCustomFoodItem(item.id)}
                           className="p-1.5 rounded-full hover:bg-red-50 text-red-500 transition-colors cursor-pointer"
                           title="Xóa món này"
                         >

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   Heart, 
@@ -11,12 +11,12 @@ import {
   ArrowRight,
   ChevronLeft
 } from 'lucide-react';
-import { useAppStore } from '@/lib/store';
+import { useCoupleStore } from '@/lib/coupleStore';
+import { useChatStore } from '@/store/chatStore';
 import { TastePicker } from '@/components/food/TastePicker';
 import { DateCard } from '@/components/cards/DateCard';
 
 interface DatePlannerFlowProps {
-  partnerId?: string;
   partnerName?: string;
   initialCuisine?: string;
   initialLocation?: string;
@@ -32,27 +32,34 @@ const NO_BUTTON_TEXTS = [
   'Thương anh thì bấm Có nhaaa ✨',
 ];
 
+function getTomorrowDateStr(): string {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.toISOString().split('T')[0];
+}
+
 export const DatePlannerFlow: React.FC<DatePlannerFlowProps> = ({
-  partnerId,
-  partnerName = 'em',
+  partnerName: propPartnerName,
   initialCuisine,
   initialLocation,
 }) => {
-  const { createDateInvitation } = useAppStore();
+  const { profile, updateProfile } = useCoupleStore();
+  const { sendMessage } = useChatStore();
+
+  const effectivePartnerName = propPartnerName || profile.partnerName || 'em';
+  const effectiveSenderName = profile.yourName || 'anh';
 
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string>(() => getTomorrowDateStr());
   const [selectedTime, setSelectedTime] = useState<string>('19:00');
-  const [selectedFoods, setSelectedFoods] = useState<string[]>(
+  const [selectedFoods, setSelectedFoods] = useState<string[]>(() =>
     initialCuisine ? [initialCuisine] : ['Lẩu Haidilao / Hot Pot']
   );
   const [customCuisine, setCustomCuisine] = useState<string>('');
-  const [selectedLocation, setSelectedLocation] = useState<string>(
+  const [selectedLocation, setSelectedLocation] = useState<string>(() =>
     initialLocation || 'Trung tâm Sài Gòn'
   );
-  const [specialNote, setSpecialNote] = useState<string>(
-    'Em chỉ cần chuẩn bị một tâm hồn thật đẹp thôi ❤️'
-  );
+  const specialNote = 'Em chỉ cần chuẩn bị một tâm hồn thật đẹp thôi ❤️';
 
   // Evasive No button states
   const [noPosition, setNoPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -62,24 +69,6 @@ export const DatePlannerFlow: React.FC<DatePlannerFlowProps> = ({
   // Floating hearts reaction
   const [likes, setLikes] = useState<number>(99);
   const [floatingHearts, setFloatingHearts] = useState<{ id: number; left: number }[]>([]);
-
-  // Default date to tomorrow
-  useEffect(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    setSelectedDate(tomorrow.toISOString().split('T')[0]);
-  }, []);
-
-  // Update cuisine if prop changes
-  useEffect(() => {
-    if (initialCuisine) {
-      setSelectedFoods([initialCuisine]);
-    }
-  }, [initialCuisine]);
-
-  if (initialLocation && selectedLocation === 'Trung tâm Sài Gòn') {
-    setSelectedLocation(initialLocation);
-  }
 
   // Trigger evasive move on No button
   const handleNoHoverOrClick = () => {
@@ -129,13 +118,30 @@ export const DatePlannerFlow: React.FC<DatePlannerFlowProps> = ({
       ? (selectedFoods.length > 0 ? `${selectedFoods.join(', ')} & ${customCuisine.trim()}` : customCuisine.trim())
       : (selectedFoods.length > 0 ? selectedFoods.join(', ') : 'Ăn ngon cùng nhau');
 
-    createDateInvitation({
-      senderId: 'user_current',
-      receiverId: partnerId || 'partner',
-      dateTime: `${selectedDate} vào lúc ${selectedTime}`,
-      cuisine: combinedCuisine,
-      location: selectedLocation,
-      specialMessage: specialNote,
+    // Update couple profile next date
+    updateProfile({
+      nextDateDate: selectedDate,
+      nextDateTime: selectedTime,
+      nextDateLocation: selectedLocation,
+    });
+
+    // Send Date Invitation message directly into Couple Chat Stream
+    sendMessage({
+      sender: 'me',
+      senderName: effectiveSenderName,
+      text: `💌 [Thiệp mời hẹn hò] Anh mời em đi ăn ${combinedCuisine} vào ngày ${selectedDate} lúc ${selectedTime} tại ${selectedLocation}!`,
+      type: 'date_invite',
+      invitationData: {
+        partnerName: effectivePartnerName,
+        senderName: effectiveSenderName,
+        dateTime: `${selectedDate} vào lúc ${selectedTime}`,
+        dateStr: selectedDate,
+        timeStr: selectedTime,
+        cuisine: combinedCuisine,
+        location: selectedLocation,
+        specialNote,
+        status: 'pending',
+      },
     });
 
     setCurrentStep(3);
@@ -171,8 +177,8 @@ export const DatePlannerFlow: React.FC<DatePlannerFlowProps> = ({
               {currentStep === 2 && 'Step 03 • Món Khoái Khẩu'}
               {currentStep === 3 && 'Step 04 • VIP Date Pass'}
             </div>
-            <div className="font-serif-italic text-lg text-[#2D1E2F] font-bold">
-              {currentStep === 0 && `Gửi lời mời đến ${partnerName}`}
+            <div className="font-serif italic text-lg text-[#2D1E2F] font-bold">
+              {currentStep === 0 && `Gửi lời mời đến ${effectivePartnerName}`}
               {currentStep === 1 && 'Chọn ngày giờ hoàn hảo'}
               {currentStep === 2 && 'Hôm nay chúng mình ăn gì?'}
               {currentStep === 3 && 'Tấm vé VIP cho buổi hẹn'}
@@ -201,11 +207,11 @@ export const DatePlannerFlow: React.FC<DatePlannerFlowProps> = ({
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-4xl sm:text-5xl font-serif-italic text-[#2D1E2F] font-bold tracking-tight leading-tight">
+            <h2 className="text-4xl sm:text-5xl font-serif italic text-[#2D1E2F] font-bold tracking-tight leading-tight">
               Đi ăn &amp; hẹn hò với anh nhé? 💕
             </h2>
             <p className="text-xs sm:text-sm text-[#715A75] max-w-sm mx-auto font-light leading-relaxed">
-              Anh đã chuẩn bị sẵn một danh sách quán ăn ngon đúng gu của {partnerName} rồi nè! ✨
+              Anh đã chuẩn bị sẵn một danh sách quán ăn ngon đúng gu của {effectivePartnerName} rồi nè! ✨
             </p>
           </div>
 
@@ -243,7 +249,7 @@ export const DatePlannerFlow: React.FC<DatePlannerFlowProps> = ({
       {currentStep === 1 && (
         <div className="my-auto py-2 space-y-5 animate-fade-in">
           <div className="text-center space-y-1">
-            <h3 className="font-serif-italic text-3xl text-[#2D1E2F] font-bold">
+            <h3 className="font-serif italic text-3xl text-[#2D1E2F] font-bold">
               Khi nào chúng mình gặp nhau? 🌸
             </h3>
             <p className="text-xs text-[#715A75] font-light">
@@ -348,7 +354,7 @@ export const DatePlannerFlow: React.FC<DatePlannerFlowProps> = ({
       {currentStep === 2 && (
         <div className="my-auto py-2 space-y-4 animate-fade-in">
           <div className="text-center space-y-1">
-            <h3 className="font-serif-italic text-3xl text-[#2D1E2F] font-bold">
+            <h3 className="font-serif italic text-3xl text-[#2D1E2F] font-bold">
               Hôm nay chúng mình ăn gì? 🍽️
             </h3>
             <p className="text-xs text-[#715A75] font-light">
@@ -356,7 +362,6 @@ export const DatePlannerFlow: React.FC<DatePlannerFlowProps> = ({
             </p>
           </div>
 
-          {/* New TastePicker Component */}
           <TastePicker
             selectedFoods={selectedFoods}
             onChangeSelectedFoods={setSelectedFoods}
@@ -390,7 +395,8 @@ export const DatePlannerFlow: React.FC<DatePlannerFlowProps> = ({
       {currentStep === 3 && (
         <div className="my-auto py-2 animate-fade-in">
           <DateCard
-            partnerName={partnerName}
+            partnerName={effectivePartnerName}
+            senderName={effectiveSenderName}
             dateTime={`${selectedDate} vào lúc ${selectedTime}`}
             dateStr={selectedDate}
             timeStr={selectedTime}
@@ -404,3 +410,5 @@ export const DatePlannerFlow: React.FC<DatePlannerFlowProps> = ({
     </div>
   );
 };
+
+export default DatePlannerFlow;

@@ -2,6 +2,22 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CoupleProfile, DEFAULT_COUPLE_PROFILE, FoodItem } from '@/types/couple';
 
+// ── Dating Days Calculation with UTC Normalization ──
+export function calculateDatingDays(anniversaryDate: string): number {
+  try {
+    if (!anniversaryDate) return 520;
+    const start = new Date(anniversaryDate);
+    if (isNaN(start.getTime())) return 520;
+    const now = new Date();
+    const startUtc = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+    const nowUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffDays = Math.floor((nowUtc - startUtc) / (1000 * 60 * 60 * 24));
+    return isNaN(diffDays) ? 520 : Math.max(1, diffDays);
+  } catch {
+    return 520;
+  }
+}
+
 interface CoupleStoreState {
   profile: CoupleProfile;
   updateProfile: (updates: Partial<CoupleProfile>) => void;
@@ -9,7 +25,8 @@ interface CoupleStoreState {
   addCustomFoodItem: (item: FoodItem) => void;
   removeCustomFoodItem: (itemId: string) => void;
   toggleDislikedFood: (foodName: string) => void;
-  getDaysTogether: () => number;
+  getDaysTogether: (annivDate?: string) => number;
+  resetToDefaults: () => void;
 }
 
 export const useCoupleStore = create<CoupleStoreState>()(
@@ -39,7 +56,6 @@ export const useCoupleStore = create<CoupleStoreState>()(
       addCustomFoodItem: (item) =>
         set((state) => {
           const currentCustom = state.profile.tastePreferences.customFoodItems || [];
-          // Avoid duplicate ID or name
           if (currentCustom.some((f) => f.name.toLowerCase() === item.name.toLowerCase())) {
             return state;
           }
@@ -86,19 +102,15 @@ export const useCoupleStore = create<CoupleStoreState>()(
           };
         }),
 
-      getDaysTogether: () => {
-        const { anniversaryDate } = get().profile;
-        if (!anniversaryDate) return 520;
-        try {
-          const start = new Date(anniversaryDate);
-          const now = new Date();
-          const diffTime = Math.abs(now.getTime() - start.getTime());
-          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-          return isNaN(diffDays) ? 520 : diffDays;
-        } catch {
-          return 520;
-        }
+      getDaysTogether: (annivDate?: string) => {
+        const targetDate = annivDate || get().profile.anniversaryDate;
+        return calculateDatingDays(targetDate);
       },
+
+      resetToDefaults: () =>
+        set({
+          profile: DEFAULT_COUPLE_PROFILE,
+        }),
     }),
     {
       name: 'our-date-night-couple-profile',
