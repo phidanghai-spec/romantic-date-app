@@ -302,47 +302,57 @@ export default function TimelinePage() {
               </div>
 
               {/* Bucket List Items */}
-              <div className="space-y-2 pt-2">
-                {bucketList.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
-                      item.isCompleted
-                        ? 'bg-rose-50/70 border-rose-300 text-rose-900 opacity-90'
-                        : 'bg-white border-rose-200 text-[#2D1E2F] hover:border-rose-300'
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => toggleBucketItem(item.id)}
-                      className="flex items-center gap-3 text-left flex-1 cursor-pointer"
+              {bucketList.length === 0 ? (
+                <div className="cream-glass-card rounded-3xl p-12 text-center border border-rose-200/70 space-y-3">
+                  <div className="text-4xl">✨</div>
+                  <h4 className="font-serif italic text-2xl text-[#2D1E2F] font-bold">Chưa có điều ước nào trong danh sách</h4>
+                  <p className="text-xs text-[#715A75] max-w-sm mx-auto">
+                    Thêm những điều hai bạn muốn cùng nhau trải nghiệm vào ô bên dưới nhé!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2 pt-2">
+                  {bucketList.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
+                        item.isCompleted
+                          ? 'bg-rose-50/70 border-rose-300 text-rose-900 opacity-90'
+                          : 'bg-white border-rose-200 text-[#2D1E2F] hover:border-rose-300'
+                      }`}
                     >
-                      {item.isCompleted ? (
-                        <CheckCircle2 className="w-5 h-5 text-rose-500 fill-rose-100 shrink-0" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-rose-300 shrink-0 hover:text-rose-500 transition-colors" />
-                      )}
-                      <div>
-                        <span className={`text-xs sm:text-sm font-medium block ${item.isCompleted ? 'line-through text-rose-700' : ''}`}>
-                          {item.title}
-                        </span>
-                        <span className="text-[10px] text-[#886A8B] font-mono">
-                          Chủ đề: {item.category} {item.completedAt && `• Hoàn thành: ${item.completedAt}`}
-                        </span>
-                      </div>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleBucketItem(item.id)}
+                        className="flex items-center gap-3 text-left flex-1 cursor-pointer"
+                      >
+                        {item.isCompleted ? (
+                          <CheckCircle2 className="w-5 h-5 text-rose-500 fill-rose-100 shrink-0" />
+                        ) : (
+                          <Circle className="w-5 h-5 text-rose-300 shrink-0 hover:text-rose-500 transition-colors" />
+                        )}
+                        <div>
+                          <span className={`text-xs sm:text-sm font-medium block ${item.isCompleted ? 'line-through text-rose-700' : ''}`}>
+                            {item.title}
+                          </span>
+                          <span className="text-[10px] text-[#886A8B] font-mono">
+                            Chủ đề: {item.category} {item.completedAt && `• Hoàn thành: ${item.completedAt}`}
+                          </span>
+                        </div>
+                      </button>
 
-                    <button
-                      type="button"
-                      onClick={() => deleteBucketItem(item.id)}
-                      className="p-1.5 rounded-full text-[#886A8B] hover:text-red-500 hover:bg-rose-50 transition-colors"
-                      title="Xóa mục này"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      <button
+                        type="button"
+                        onClick={() => deleteBucketItem(item.id)}
+                        className="p-1.5 rounded-full text-[#886A8B] hover:text-red-500 hover:bg-rose-50 transition-colors"
+                        title="Xóa mục này"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Add Bucket Item Form */}
               <form onSubmit={handleAddBucketItem} className="pt-4 flex flex-col sm:flex-row gap-2">
