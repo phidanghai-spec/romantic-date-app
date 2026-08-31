@@ -1,6 +1,11 @@
 /**
  * Google Calendar 1-Click URL Generator with Timezone Offset Precision
- * Accurately handles late-night rollovers past midnight.
+ * Accurately handles midnight hours (00:xx) and late-night rollovers past midnight.
+ *
+ * Manual Verification Test Cases:
+ * 1. startTime = "00:00" -> parsedHour: 0, startHour: 0 (not fallback 19)
+ * 2. startTime = "00:30" -> parsedHour: 0, startHour: 0, startMin: 30
+ * 3. startTime = "19:00" -> parsedHour: 19, startHour: 19, startMin: 0
  */
 
 export interface GoogleCalendarOptions {
@@ -33,11 +38,18 @@ export function generateGoogleCalendarUrl({
   const [yearStr, monthStr, dayStr] = (startDate || new Date().toISOString().split('T')[0]).split('-');
   const [hourStr, minStr] = (startTime || '19:00').split(':');
 
-  const startYear = parseInt(yearStr, 10) || new Date().getFullYear();
-  const startMonth = (parseInt(monthStr, 10) || (new Date().getMonth() + 1)) - 1;
-  const startDay = parseInt(dayStr, 10) || new Date().getDate();
-  const startHour = parseInt(hourStr, 10) || 19;
-  const startMin = parseInt(minStr, 10) || 0;
+  const parsedYear = parseInt(yearStr, 10);
+  const parsedMonth = parseInt(monthStr, 10);
+  const parsedDay = parseInt(dayStr, 10);
+  const parsedHour = parseInt(hourStr, 10);
+  const parsedMin = parseInt(minStr, 10);
+
+  // Use Number.isNaN check instead of || operator to avoid falsy zero bug for midnight hours (00:xx)
+  const startYear = !Number.isNaN(parsedYear) && parsedYear > 0 ? parsedYear : new Date().getFullYear();
+  const startMonth = !Number.isNaN(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12 ? parsedMonth - 1 : new Date().getMonth();
+  const startDay = !Number.isNaN(parsedDay) && parsedDay >= 1 && parsedDay <= 31 ? parsedDay : new Date().getDate();
+  const startHour = !Number.isNaN(parsedHour) && parsedHour >= 0 && parsedHour <= 23 ? parsedHour : 19;
+  const startMin = !Number.isNaN(parsedMin) && parsedMin >= 0 && parsedMin <= 59 ? parsedMin : 0;
 
   // Build full start & end Date objects to handle multi-hour rollovers past midnight
   const startDateObj = new Date(startYear, startMonth, startDay, startHour, startMin, 0);
