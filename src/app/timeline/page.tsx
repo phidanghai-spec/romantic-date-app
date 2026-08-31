@@ -80,7 +80,7 @@ export default function TimelinePage() {
 
   const handleAddMemory = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim()) return;
+    if (!newTitle.trim() || newTitle.trim().length > 60) return;
 
     const fallbackPhoto = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1000&auto=format&fit=crop';
 
@@ -106,7 +106,7 @@ export default function TimelinePage() {
 
   const handleAddBucketItem = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newBucketTitle.trim()) return;
+    if (!newBucketTitle.trim() || newBucketTitle.trim().length > 80) return;
 
     addBucketItem(newBucketTitle.trim(), newBucketCategory);
     setNewBucketTitle('');
@@ -355,32 +355,48 @@ export default function TimelinePage() {
               )}
 
               {/* Add Bucket Item Form */}
-              <form onSubmit={handleAddBucketItem} className="pt-4 flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  value={newBucketTitle}
-                  onChange={(e) => setNewBucketTitle(e.target.value)}
-                  placeholder="Thêm một ước mơ mới (VD: Đi ngắm tuyết ở Sapa, cùng làm bánh kem...)"
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-rose-50/40 border border-rose-200 text-xs sm:text-sm text-[#2D1E2F] focus:outline-rose-400 placeholder:text-[#A08DA3]"
-                />
-                <select
-                  value={newBucketCategory}
-                  onChange={(e) => setNewBucketCategory(e.target.value)}
-                  className="px-3 py-2.5 rounded-xl bg-rose-50/40 border border-rose-200 text-xs text-[#2D1E2F] focus:outline-rose-400 font-medium"
-                >
-                  <option value="Kỷ Niệm">Kỷ Niệm 📸</option>
-                  <option value="Ăn Uống">Ăn Uống 🍲</option>
-                  <option value="Du Lịch">Du Lịch ✈️</option>
-                  <option value="Trải Nghiệm">Trải Nghiệm 🎨</option>
-                </select>
-                <button
-                  type="submit"
-                  disabled={!newBucketTitle.trim()}
-                  className="px-5 py-2.5 rounded-xl bg-rose-500 text-white font-bold text-xs shadow-md hover:bg-rose-600 disabled:opacity-40 transition-all flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Thêm</span>
-                </button>
+              <form onSubmit={handleAddBucketItem} className="pt-4 space-y-1.5">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    maxLength={80}
+                    value={newBucketTitle}
+                    onChange={(e) => setNewBucketTitle(e.target.value)}
+                    placeholder="Thêm một ước mơ mới (VD: Đi ngắm tuyết ở Sapa, cùng làm bánh kem...)"
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-rose-50/40 border border-rose-200 text-xs sm:text-sm text-[#2D1E2F] focus:outline-rose-400 placeholder:text-[#A08DA3]"
+                  />
+                  <select
+                    value={newBucketCategory}
+                    onChange={(e) => setNewBucketCategory(e.target.value)}
+                    className="px-3 py-2.5 rounded-xl bg-rose-50/40 border border-rose-200 text-xs text-[#2D1E2F] focus:outline-rose-400 font-medium"
+                  >
+                    <option value="Kỷ Niệm">Kỷ Niệm 📸</option>
+                    <option value="Ăn Uống">Ăn Uống 🍲</option>
+                    <option value="Du Lịch">Du Lịch ✈️</option>
+                    <option value="Trải Nghiệm">Trải Nghiệm 🎨</option>
+                  </select>
+                  <button
+                    type="submit"
+                    disabled={!newBucketTitle.trim()}
+                    className="px-5 py-2.5 rounded-xl bg-rose-500 text-white font-bold text-xs shadow-md hover:bg-rose-600 disabled:opacity-40 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Thêm ước mơ</span>
+                  </button>
+                </div>
+                <div className="flex justify-end pr-1">
+                  <span
+                    className={`text-[10px] font-mono transition-colors ${
+                      newBucketTitle.length >= 80
+                        ? 'text-red-500 font-bold'
+                        : newBucketTitle.length > 70
+                        ? 'text-amber-600 font-semibold'
+                        : 'text-[#886A8B]'
+                    }`}
+                  >
+                    {newBucketTitle.length}/80
+                  </span>
+                </div>
               </form>
             </div>
           </section>
@@ -407,10 +423,24 @@ export default function TimelinePage() {
 
               <form onSubmit={handleAddMemory} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-[#5E4761]">Tiêu đề kỷ niệm *</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-[#5E4761]">Tiêu đề kỷ niệm *</label>
+                    <span
+                      className={`text-[10px] font-mono transition-colors ${
+                        newTitle.length >= 60
+                          ? 'text-red-500 font-bold'
+                          : newTitle.length > 50
+                          ? 'text-amber-600 font-semibold'
+                          : 'text-[#886A8B]'
+                      }`}
+                    >
+                      {newTitle.length}/60
+                    </span>
+                  </div>
                   <input
                     type="text"
                     required
+                    maxLength={60}
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder="VD: Buổi tối ngắm hoàng hôn Thảo Điền"
