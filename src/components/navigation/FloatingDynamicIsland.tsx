@@ -4,13 +4,10 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Clock,
   Dices,
   Compass,
   CalendarHeart,
   BookHeart,
-  Heart,
-  Sparkles,
 } from "lucide-react";
 
 export default function FloatingDynamicIsland() {

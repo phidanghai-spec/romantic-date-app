@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Heart, Dices, CalendarHeart, Clock, Sparkles } from "lucide-react";
+import { Heart, Dices, CalendarHeart, Clock } from "lucide-react";
 
 export default function LetterCountdown() {
   const [timeLeft, setTimeLeft] = useState<{

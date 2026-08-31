@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface DateInviteEmailProps {
   senderName: string;
   partnerName: string;

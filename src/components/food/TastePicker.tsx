@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Utensils, Check, Sparkles, Heart } from 'lucide-react';
+import { Utensils, Check, Heart } from 'lucide-react';
 
 export interface CuisineItem {
   id: string;

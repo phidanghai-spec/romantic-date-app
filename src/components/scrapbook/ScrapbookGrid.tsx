@@ -9,11 +9,6 @@ import {
   BookHeart,
   ChevronRight,
   Sparkles,
-  Heart,
-  Camera,
-  MapPin,
-  Utensils,
-  Ticket,
 } from "lucide-react";
 
 export default function ScrapbookGrid() {
